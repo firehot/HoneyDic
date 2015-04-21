@@ -1,4 +1,4 @@
-package kr.re.dev.MoogleDic;
+package kr.re.dev.MoogleDic.DicData;
 
 import android.app.Application;
 import android.content.Context;
@@ -9,16 +9,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
-import io.realm.Realm;
-import kr.re.dev.MoogleDic.DicData.DicSearcher;
-import rx.Observable;
-
 
 /**
  * Created by ice3x2 on 15. 4. 16..
  */
-public class DicDataTest extends ApplicationTestCase<Application> {
-    public DicDataTest() {
+public class DicSearcherTest extends ApplicationTestCase<Application> {
+    public DicSearcherTest() {
         super(Application.class);
     }
 

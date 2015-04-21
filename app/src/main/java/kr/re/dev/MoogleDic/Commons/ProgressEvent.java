@@ -1,4 +1,4 @@
-package kr.re.dev.MoogleDic.DicData;
+package kr.re.dev.MoogleDic.Commons;
 
 /**
  * Created by ice3x2 on 15. 4. 21..

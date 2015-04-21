@@ -12,13 +12,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import io.realm.Realm;
+import kr.re.dev.MoogleDic.Commons.ProgressEvent;
 import rx.Observable;
 import rx.Subscriber;
 import rx.schedulers.Schedulers;
 import rx.subjects.ReplaySubject;
 
 /**
- * 사전 정보를 조회하고 검색한다.
+ * 사전 검색.
  * Created by ice3x2 on 15. 4. 15..
  */
 public class DicSearcher {
@@ -30,9 +31,51 @@ public class DicSearcher {
     private String mDicName = "";
 
 
+    /**
+     * DicSearcher 생성.
+     * @param context 뭔지 알지?
+     * @param dbName Assets 폴더에 들어있는 DB 파일 이름.
+     * @return DicSearcher 의 인스턴스.
+     * @throws IOException 만약 Assets 폴더에 두 번째 인자로 입력한 DB 이름에 해당하는 파일이 없을 경우 발생한다.
+     */
     public static DicSearcher newInstance(Context context, String dbName) throws IOException {
         return  new DicSearcher(context, dbName);
     }
+
+    /**
+     * 사전 초기화 이벤트를 받아온다.
+     * 사전 최기화가 완료 될 경우 onComplete() 발생.
+     * @return 필수 사항 : onError 반드시 사용. 초기화 시키다가 뻑날수도 있으니...
+     */
+    public Observable<ProgressEvent> eventFromLoadDB() {
+        return Observable.amb(mProgressSubject, mProgressSubject).subscribeOn(Schedulers.newThread());
+    }
+
+    /**
+     * 단어를 검색한다.
+     * @param word 앞뒤에 공백이 있어도 상관없다. 대소문자 가리지 않는다.
+     * @return 권장 사항 : onError 사용 할 것.
+     */
+    public Observable<DicDBColumn> search(String word) {
+        word =  word.replaceAll("^[ \\t\\r\\n\\f]{0,}","").replaceAll("[ \\t\\r\\n\\f]{0,}$","");
+        final String finalWord = word;
+        return mInitRealObservable.flatMap(realm -> Observable.just(realm)
+                .map(realm1 -> realm1.where(DicDBColumn.class).equalTo("word", finalWord, false).findAll())
+                .map(result -> {
+                    if (result.isEmpty()) return new DicDBColumn(finalWord, "", mDicName);
+                    return result.get(0);
+                }).subscribeOn(Schedulers.from(mSingleExecutor)));
+    }
+
+    /**
+     * 사전을 닫아준다.
+     */
+    public void close() {
+        mInitRealObservable.subscribe(realm -> realm.close()).unsubscribe();
+    }
+
+
+
 
     private DicSearcher(Context context, String DBName) throws IOException {
         mDicName = DBName;
@@ -101,22 +144,5 @@ public class DicSearcher {
         sub.onCompleted();
     }
 
-    public Observable<ProgressEvent> eventFromLoadDB() {
-        return Observable.amb(mProgressSubject, mProgressSubject).subscribeOn(Schedulers.newThread());
-    }
-    public Observable<DicDBColumn> search(String word) {
-        word =  word.replaceAll("^[ \\t\\r\\n\\f]{0,}","").replaceAll("[ \\t\\r\\n\\f]{0,}$","");
-        final String finalWord = word;
-        return mInitRealObservable.flatMap(realm -> Observable.just(realm)
-                .map(realm1 -> realm1.where(DicDBColumn.class).equalTo("word", finalWord, false).findAll())
-                .map(result -> {
-                    if (result.isEmpty()) return new DicDBColumn(finalWord, "", mDicName);
-                    return result.get(0);
-                }).subscribeOn(Schedulers.from(mSingleExecutor)));
-    }
-
-    public void close() {
-        mInitRealObservable.subscribe(realm -> realm.close()).unsubscribe();
-    }
 
 }
