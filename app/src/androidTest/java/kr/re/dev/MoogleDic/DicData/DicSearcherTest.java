@@ -7,7 +7,10 @@ import android.util.Log;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
+
+import kr.re.dev.MoogleDic.DicData.Database.WordColumns;
 
 
 /**
@@ -17,6 +20,11 @@ public class DicSearcherTest extends ApplicationTestCase<Application> {
     public DicSearcherTest() {
         super(Application.class);
     }
+
+
+
+
+
 
     public void  testSearch() {
        Context context =  getContext();
@@ -31,120 +39,99 @@ public class DicSearcherTest extends ApplicationTestCase<Application> {
             e.printStackTrace();
             fail(e.getMessage());
         }
-        dicSearcher.eventFromLoadDB().doOnError(e -> {
-            StackTraceElement[] stackTraceElements =  e.getStackTrace();
-            for(StackTraceElement ste : stackTraceElements) {
-                Log.e("testio", ste.toString());
-            }
-            fail(e.getMessage());
-            latch.countDown();}).subscribe(event -> {
-            Log.d("testio", event.getProgress() + "%");
-            if (event.getProgress() >= 99) {
-                //latch.countDown();
-            }
+        dicSearcher.eventFromLoadDB()
+                .subscribe(event -> {
+                    if (event.isError()) {
+                        fail(event.toString());
+                        latch.countDown();
+                    }
+
+                    Log.d("testio", event.getProgress() + "%");
+                    if (event.getProgress() >= 99) {
+                        //latch.countDown();
+                    }
         });
 
-        dicSearcher.search("\r    taken \t\t   \n").doOnError(e -> {
-            StackTraceElement[] stackTraceElements =  e.getStackTrace();
-            for(StackTraceElement ste : stackTraceElements) {
-                Log.e("testio", ste.toString());
-            }
-            fail(e.getMessage());
-            latch.countDown();
-        }).subscribe(dicDBColumn -> {
-            assertNotNull(dicDBColumn.getDescription());
-            assertNotNull(dicDBColumn.getWord());
-            assertNotNull(dicDBColumn.getDicName());
-            Log.d("testio", dicDBColumn.getDicName());
-            Log.d("testio", dicDBColumn.getWord());
-            Log.d("testio", dicDBColumn.getDescription());
-        });
-
-
-        dicSearcher.search("\r    name \t\t   \n").doOnError(e -> {
+        Log.d("testio", "search test");
+        // 원형 및 레퍼런스 단어 테스트.
+        dicSearcher.search("\r    boxing \t\t   \n").doOnError(e -> {
             StackTraceElement[] stackTraceElements =  e.getStackTrace();
             for(StackTraceElement ste : stackTraceElements) {
                 Log.e("testio", ste.toString());
             }
             fail(e.getMessage());
             latch.countDown();
-        }).subscribe(dicDBColumn -> {
-            assertNotNull(dicDBColumn.getDescription());
-            assertNotNull(dicDBColumn.getWord());
-            assertNotNull(dicDBColumn.getDicName());
-            Log.d("testio", dicDBColumn.getDicName());
-            Log.d("testio", dicDBColumn.getWord());
-            Log.d("testio", dicDBColumn.getDescription());
+        }).subscribe(wordCardList -> {
+            WordCard wordCard = wordCardList.get(0);
+            assertEquals(wordCard.word(), "boxing");
+            assertEquals(wordCard.phonetic(), "box·ing || 'bɒksɪŋ");
+            List<DescriptionCard> descriptionCardList = wordCard.getDescriptionCards();
+            DescriptionCard descriptionCard = descriptionCardList.get(0);
+            assertEquals(descriptionCard.wordClass(), "n.");
+            assertEquals(descriptionCard.meaning(), " 권투, 두사람이 치고 받는 운동");
+
+            wordCard = wordCardList.get(1);
+            assertEquals(wordCard.getRaw(), "<C><F><H><M>bɒks</M></H><I><N><U>n.</U> 통; 상자; 칸막이한 좌석; 손바닥으로 침, 주먹으로 침;텔레비젼</N></I><I><N><U>v.</U> 주먹질 하며 싸우다; 박스에 넣다</N></I></F></C>");
+            assertEquals(wordCard.word(), "box");
+            assertEquals(wordCard.phonetic(), "bɒks");
+            descriptionCardList = wordCard.getDescriptionCards();
+            descriptionCard = descriptionCardList.get(0);
+            assertEquals(descriptionCard.wordClass(), "n.");
+            assertEquals(descriptionCard.meaning(), " 통; 상자; 칸막이한 좌석; 손바닥으로 침, 주먹으로 침;텔레비젼");
+            descriptionCard = descriptionCardList.get(1);
+            assertEquals(descriptionCard.wordClass(), "v.");
+            assertEquals(descriptionCard.meaning(), " 주먹질 하며 싸우다; 박스에 넣다");
         });
 
-        dicSearcher.search("\r    fetch \t\t   \n").doOnError(e -> {
+
+
+        dicSearcher.search("\r    box office \t\t   \n").doOnError(e -> {
             StackTraceElement[] stackTraceElements =  e.getStackTrace();
             for(StackTraceElement ste : stackTraceElements) {
                 Log.e("testio", ste.toString());
             }
             fail(e.getMessage());
             latch.countDown();
-        }).subscribe(dicDBColumn -> {
-            assertNotNull(dicDBColumn.getDescription());
-            assertNotNull(dicDBColumn.getWord());
-            assertNotNull(dicDBColumn.getDicName());
-            Log.d("testio", dicDBColumn.getDicName());
-            Log.d("testio", dicDBColumn.getWord());
-            Log.d("testio", dicDBColumn.getDescription());
+        }).subscribe(wordCardList -> {
+            WordCard wordCard = wordCardList.get(0);
+            assertEquals(wordCard.word(), "box office");
         });
 
-        dicSearcher.search("\r    HOLD \t\t   \n").doOnError(e -> {
+
+        dicSearcher.search("\r    trust \t\t   \n").doOnError(e -> {
             StackTraceElement[] stackTraceElements =  e.getStackTrace();
             for(StackTraceElement ste : stackTraceElements) {
                 Log.e("testio", ste.toString());
             }
             fail(e.getMessage());
             latch.countDown();
-        }).subscribe(dicDBColumn -> {
-            assertNotNull(dicDBColumn.getDescription());
-            assertNotNull(dicDBColumn.getWord());
-            assertNotNull(dicDBColumn.getDicName());
-            Log.d("testio", dicDBColumn.getDicName());
-            Log.d("testio", dicDBColumn.getWord());
-            Log.d("testio", dicDBColumn.getDescription());
+        }).subscribe(wordCardList -> {
+            WordCard wordCard = wordCardList.get(0);
+            assertEquals(wordCard.word(), "trust");
         });
 
-        dicSearcher.search("SensitivE ").doOnError(e -> {
+        dicSearcher.search("\r    Trust \t\t   \n").doOnError(e -> {
             StackTraceElement[] stackTraceElements =  e.getStackTrace();
             for(StackTraceElement ste : stackTraceElements) {
                 Log.e("testio", ste.toString());
             }
             fail(e.getMessage());
             latch.countDown();
-        }).subscribe(dicDBColumn -> {
-            assertNotNull(dicDBColumn.getDescription());
-            assertNotNull(dicDBColumn.getWord());
-            assertNotNull(dicDBColumn.getDicName());
-            Log.d("testio", dicDBColumn.getDicName());
-            Log.d("testio", dicDBColumn.getWord());
-            Log.d("testio", dicDBColumn.getDescription());
+        }).subscribe(wordCardList -> {
+            WordCard wordCard = wordCardList.get(0);
+            assertEquals(wordCard.word(), "Trust");
+            latch.countDown();
         });
 
-        dicSearcher.search("sdfsdaf").doOnError(e -> {
-            StackTraceElement[] stackTraceElements =  e.getStackTrace();
-            for(StackTraceElement ste : stackTraceElements) {
-                Log.e("testio", ste.toString());
-            }
-            fail(e.getMessage());
-            latch.countDown();
-        }).subscribe(dicDBColumn -> {
-            assertNotNull(dicDBColumn.getWord());
-            Log.d("testio", dicDBColumn.getDicName());
-            Log.d("testio", dicDBColumn.getWord());
-            Log.d("testio", dicDBColumn.getDescription());
-            latch.countDown();
-        });
+
 
         try {
             latch.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+
     }
 
 }

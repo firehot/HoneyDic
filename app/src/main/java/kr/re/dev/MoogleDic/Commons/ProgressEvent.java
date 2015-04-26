@@ -11,6 +11,9 @@ public class ProgressEvent {
     private int mMax = 100;
     private static ProgressEvent sEnd;
     private ProgressEvent mPrev;
+    private Throwable mException;
+    private Object mTag;
+    private boolean mIsError = false;
 
 
     public static ProgressEvent obtain() {
@@ -21,6 +24,14 @@ public class ProgressEvent {
             sEnd = sEnd.mPrev;
             return event;
         }
+    }
+
+    public static ProgressEvent obtain(Throwable e) {
+        ProgressEvent event =  obtain();
+        event.setMax(0).setProgress(0).setComplete(false);
+        event.mIsError = true;
+        event.mException = e;
+        return event;
     }
 
     public static ProgressEvent obtain(int max, int progress, boolean isComplete) {
@@ -49,6 +60,12 @@ public class ProgressEvent {
         mProgress = progress;
         return this;
     }
+    public boolean isError() {
+         return mIsError;
+    }
+    public Throwable getThrowable() {
+        return mException;
+    }
     public ProgressEvent setMax(int max) {
         mMax = max;
         return this;
@@ -65,6 +82,13 @@ public class ProgressEvent {
     }
     public boolean isComplete() {
         return mIsComplete;
+    }
+    public ProgressEvent setTag(Object tag) {
+        this.mTag = tag;
+        return this;
+    }
+    public Object getTag() {
+        return mTag;
     }
 
 

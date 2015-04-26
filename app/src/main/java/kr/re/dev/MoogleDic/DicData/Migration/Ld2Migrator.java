@@ -3,19 +3,26 @@ package kr.re.dev.MoogleDic.DicData.Migration;
 import android.content.Context;
 import android.util.Log;
 
-//import com.google.common.annotations.VisibleForTesting;
-//import com.j256.ormlite.dao.Dao;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
+
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
 
 import io.realm.Realm;
-import kr.re.dev.MoogleDic.DicData.DicDBColumn;
+import io.realm.RealmResults;
+import kr.re.dev.MoogleDic.Commons.ProgressEvent;
+import kr.re.dev.MoogleDic.DicData.Database.KeyWordColumns;
+import kr.re.dev.MoogleDic.DicData.Database.WordColumns;
 import rx.Observable;
-import rx.Subscriber;
 import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
 
@@ -27,157 +34,229 @@ import rx.subjects.PublishSubject;
  */
 public class Ld2Migrator  {
 
+    private PublishSubject<String> mLogEvnetPublishSubject = PublishSubject.create();
+    private int mLogEventInterval = 0;
+    private int mCountJobCount = 0;
+
     public static Ld2Migrator newInstance() {
         return new Ld2Migrator();
     }
 
-    public Observable<MigrationEvent> migrate(Context context, String ld2FileNameInAsserts) {
-         return Observable.create((Observable.OnSubscribe<MigrationEvent>) sub -> {
-            executeMigrate(context, ld2FileNameInAsserts, sub);
-         });
+    public Observable<String> eventLogs(int interval) {
+        mLogEventInterval = interval;
+       return Observable.create((Observable.OnSubscribe<String>) sub -> {
+           mLogEvnetPublishSubject.doOnNext(e -> sub.onNext(e)).subscribe();
+        }).subscribeOn(Schedulers.newThread());
     }
 
+    public Observable<ProgressEvent> migrateFromLd2(Context context, String ld2FileNameInAsserts) {
+        return Observable.create((Observable.OnSubscribe<ProgressEvent>) sub -> {
+            try {
+                //File tmpFile = null;
+                mLogEvnetPublishSubject.onNext("Copy from assets.");
+                File ld2File = copyFromAssets(context, ld2FileNameInAsserts, context.getCacheDir());
+                mLogEvnetPublishSubject.onNext("ld2 file to plain text file.");
+                LingoesLd2Reader ld2Reader = new LingoesLd2Reader();
+                String txtPath = ld2Reader.readLd2(ld2File.getAbsolutePath());
+                mLogEvnetPublishSubject.onNext("create DataBase.");
+                PublishSubject<ProgressEvent> publishSubject = PublishSubject.create();
+                publishSubject.doOnNext(e -> {
+                    sub.onNext(e);
+                    Log.i("testio", "call do on");
 
-    private void executeMigrate(Context context, String ld2FileNameInAsserts, Subscriber<? super MigrationEvent> sub) {
-        try {
-            File ld2File = copyAssetsToCache(context, ld2FileNameInAsserts);
-            String dbName = l2pathToDBFileName(ld2File.getAbsolutePath());
-            if (ld2File == null || !ld2File.exists())
-                sub.onError(new IOException("Asset file does not exist : " + ld2FileNameInAsserts));
-            File dbFile = new File(context.getFilesDir(), dbName);
-            ReadLd2Event readLd2Event = new ReadLd2Event(dbFile);
-            PublishSubject<Integer> progressPublish = readLd2Event.getProgressPublish();
-            MigrationEvent migrationEvent = new MigrationEvent(0, dbFile, false);
-            progressPublish.asObservable().subscribeOn(Schedulers.newThread()).subscribe(progress -> {
-                migrationEvent.progress = progress;
-                sub.onNext(migrationEvent);
-            });
-            Observable.merge(progressPublish, null).doOnError(e -> sub.onError(e));
-            new LingoesLd2Reader().readLd2(ld2File.getAbsolutePath(), readLd2Event);
-            migrationEvent.isComplete = true;
-            sub.onNext(migrationEvent);
-            progressPublish.onCompleted();
+                }).subscribe();
+                File dbFile = new File(context.getFilesDir(), txtPath.replaceAll("[.](TXT|txt)$", ".db"));
+                txtFileToDB(context, new File(txtPath), dbFile.getName(), publishSubject);
+
+            } catch (Exception e) {
+                sub.onError(e);
+            }
             sub.onCompleted();
-        } catch (IOException e) {
-            sub.onError(e);
-        }
+        }).subscribeOn(Schedulers.io());
     }
 
 
+    public Observable<ProgressEvent> migrateFromTextFile(Context context, String wordsTXTFileNameInAsserts) {
+         return Observable.create((Observable.OnSubscribe<ProgressEvent>) sub -> {
+             try {
+                 //File tmpFile = null;
+                 mLogEvnetPublishSubject.onNext("create DataBase.");
+                 File tmpFile = copyFromAssets(context, wordsTXTFileNameInAsserts, context.getCacheDir());
 
-    private File copyAssetsToCache(Context context, String assetsFile) {
-        File file = new File(context.getCacheDir(), assetsFile);
-        try {
-            InputStream is =  context.getAssets().open(assetsFile);
-            BufferedInputStream bis = new BufferedInputStream(is);
-            FileOutputStream fos = new FileOutputStream(file);
-            BufferedOutputStream bos = new BufferedOutputStream(fos);
-            byte[] buffer = new byte[2048];
-            int len = 0;
-            while((len = bis.read(buffer)) > 0) {
-                bos.write(buffer, 0, len);
-            }
-            buffer = null;
-            bos.close();
-            fos.close();
-            bis.close();
-            is.close();;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-        return file;
+                 PublishSubject<ProgressEvent> publishSubject = PublishSubject.create();
+                 publishSubject.doOnNext(e -> {
+                     sub.onNext(e);
+                     Log.i("testio", "call do on");
+
+                 }).subscribe();
+                 File dbFile = new File(context.getFilesDir(), wordsTXTFileNameInAsserts.replaceAll("[.](TXT|txt)$", ".db"));
+
+
+                 txtFileToDB(context, tmpFile, dbFile.getName(), publishSubject);
+
+             } catch (Exception e) {
+                 sub.onError(e);
+             }
+             sub.onCompleted();
+         }).subscribeOn(Schedulers.newThread());
     }
 
-
-    private String l2pathToDBFileName(String ld2Path) {
-        File file = new File(ld2Path);
-        String name =  file.getName();
-        name =  name.replaceAll("(ld2|Ld2|LD2|lD2)", "db");
-        return name;
+    private File copyFromAssets(Context context, String fromName, File toDirs) throws IOException {
+        InputStream is = null;
+        is = context.getAssets().open(fromName);
+        File tmpFile = new File(toDirs, fromName);
+        FileOutputStream fos = new FileOutputStream(tmpFile);
+        byte[] buffer = new byte[1024];
+        int n = 0;
+        while ((n = is.read(buffer)) > 0) {
+            fos.write(buffer, 0, n);
+        }
+        is.close();
+        fos.close();
+        return tmpFile;
     }
 
-    private class ReadLd2Event implements LingoesLd2Reader.ReadLd2Event {
-
-        PublishSubject<Integer> imProgressSubject;
-        String imDatabaseName;
-        int imTotalWorlds = 0;
-        int imReadedWorlds = 0;
-        int imLastProgress = -1;
-        Realm imRealm;
-
-        ReadLd2Event(File DBFile) {
-            imProgressSubject = PublishSubject.create();
-            imProgressSubject.observeOn(Schedulers.newThread());
-            imRealm = Realm.getInstance(DBFile.getParentFile(), DBFile.getName(), null);
-            imDatabaseName = DBFile.getName();
-        }
-
-        PublishSubject<Integer> getProgressPublish() {
-            return imProgressSubject;
-        }
-
-        @Override
-        public void word(String word, String xml) {
-            ++imReadedWorlds;
-            imRealm.beginTransaction();
-            DicDBColumn dicDBColumn = imRealm.createObject(DicDBColumn.class);
-            dicDBColumn.setDicName(imDatabaseName);
-            dicDBColumn.setWord(word);
-            dicDBColumn.setDescription(xml);
-            imRealm.commitTransaction();
-
-            int progress = (int)(((float)imReadedWorlds / (float)imTotalWorlds) * 100.0f);
-            if(progress != imLastProgress) {
-                Log.d("test", "in progress : " + progress);
-                imLastProgress = progress;
-                imProgressSubject.onNext(imLastProgress);
-            }
-            if(imReadedWorlds >= imTotalWorlds) {
-                imProgressSubject.onCompleted();
-                imRealm.close();
-            }
-        }
-
-        @Override
-        public void error(Exception e) {
-            imProgressSubject.onError(e);
-        }
-
-        @Override
-        public void startRead(int totalWords) {
-            this.imTotalWorlds = totalWords;
-        }
-    }
 
     /**
-     * 마이그레이션 이벤트.
-     * ld2 파일로부터 데이터를 추출하고 DB 로 옮기는 과정의 프로그래스를 받아올 수 있다.
+     * 어차피 일회성 코드라 한 곳에 다 때려 박는다.... ;;;
+     * 대신 가독성은 좋게.
+     * @param context
+     * @param textFile
+     * @param DBName
+     * @param subject
+     * @throws IOException
      */
-    public static class MigrationEvent {
-        int progress;
-        File dbFile;
-        boolean isComplete = false;
+    private void txtFileToDB(Context context, File textFile, String DBName, PublishSubject<ProgressEvent> subject) throws IOException, NoSuchFieldException, IllegalAccessException, SQLException {
+        /**
+         * txt 파일 구조.
+         *
+         * 단어 개수 (숫자)
+         * ---------------
+         * \n
+         * 단어
+         * [base] | [derivation] (원형 | 파생형)
+         * 단어 뜻 (원형일 경우에만 존재)
+         * 참조 단어 개수
+         * 참조 단어(단어 개수만큼 반복)
+         * -----------------
+         */
 
-        private MigrationEvent() {}
-        private MigrationEvent(int progress, File dbFile, boolean isComplete) {
-            this.progress = progress;
-            this.isComplete = isComplete;
+        FileInputStream txtIs =  new FileInputStream(textFile);
+        Realm realm = Realm.getInstance(context, DBName);
+
+
+        InputStreamReader isr = new InputStreamReader(txtIs);
+        BufferedReader bi = new BufferedReader(isr);
+
+
+        int total =  Integer.parseInt(bi.readLine());
+        int count = 0, lastProgress = 0;
+        subject.onNext(ProgressEvent.obtain(100, 0, false));
+        HashMap<String, ArrayList<String>>  refWordMap = new HashMap<>();
+        for(int idx = 0; idx < total; ++idx) {
+            bi.readLine();
+            String word = bi.readLine();
+
+
+            mCountJobCount++;
+            if(mCountJobCount < 0) mCountJobCount = 0;
+            if(mCountJobCount % mLogEventInterval == 0) {
+                mLogEvnetPublishSubject.onNext("push word(" + idx + "/" + total + ")  : " + word);
+            }
+
+            realm.beginTransaction();
+
+            KeyWordColumns keyWordColumns =  realm.createObject(KeyWordColumns.class);
+            keyWordColumns.setKeyword(word);
+            keyWordColumns.setDicName(DBName);
+
+            String type = bi.readLine();
+            boolean isBase = type.contains("[base]"); //  원형일 경우
+            if(isBase) {
+                WordColumns wordColumns = realm.createObject(WordColumns.class);
+                wordColumns.setWord(word);
+                String description = bi.readLine();
+                wordColumns.setDescription(description);
+                keyWordColumns.getWords().add(wordColumns);
+                keyWordColumns.setIsBase(true);
+            } else {
+                keyWordColumns.setIsBase(false);
+            }
+
+            String strRefs = bi.readLine();
+            int refs = Integer.parseInt(strRefs);  // 참조 카운터
+            keyWordColumns.setRefs(refs);
+            realm.commitTransaction();
+
+
+            ArrayList<String> refWordList = new ArrayList<>();
+            refWordMap.put(word, refWordList);
+
+            for(int i = 0; i < refs; ++i) {
+                String refWord = bi.readLine();  // 레퍼런스 단어
+                refWordList.add(refWord);
+            }
+
+            count = idx;
+            int progress = (int)(((float)idx / (float)total) * 50.0f);
+            if(lastProgress != progress) {
+                lastProgress = progress;
+                subject.onNext(ProgressEvent.obtain(100, lastProgress, false));
+            }
 
         }
 
-        public int getProgress() {
-            return progress;
+        Set<String> wordKeys = refWordMap.keySet();
+        total = wordKeys.size();
+        count = 0;
+        for(String wordKey : wordKeys) {
+            List<String> refWords = refWordMap.get(wordKey);
+
+            realm.beginTransaction();
+            RealmResults<KeyWordColumns> keyWordColumnses =  realm.where(KeyWordColumns.class).equalTo("keyword", wordKey).findAll();
+            KeyWordColumns keyWordColumns =  keyWordColumnses.get(0);
+            int realRefs = 0;
+
+            mCountJobCount++;
+            if(mCountJobCount < 0) mCountJobCount = 0;
+            if(mCountJobCount % mLogEventInterval == 0) {
+                mLogEvnetPublishSubject.onNext("reference word(" + count + "/" + total + ")  : " + wordKey);
+            }
+
+            for(String refWord : refWords) {
+                RealmResults<WordColumns> wordColumnses =  realm.where(WordColumns.class).equalTo("word", refWord).findAll();
+                if(wordColumnses.isEmpty())
+                    continue;
+                WordColumns wordColumns =  wordColumnses.get(0);
+                keyWordColumns.getWords().add(wordColumns);
+                realRefs++;
+            }
+            keyWordColumns.setRefs(realRefs);
+
+            realm.commitTransaction();
+
+            count++;
+            int progress = (int)(((float)count / (float)total) * 50.0f) + 50;
+            if(lastProgress != progress) {
+                lastProgress = progress;
+                subject.onNext(ProgressEvent.obtain(100, lastProgress, false));
+            }
         }
-        public boolean isComplete() {
-            return isComplete;
-        }
-        public File getDBFile() {
-            return dbFile;
-        }
+        subject.onNext(ProgressEvent.obtain(100, 100, true));
 
 
+        Log.i("testio", "Words was inserted : " + (count + 1));
+
+
+        subject.onNext(ProgressEvent.obtain(100, 100, true));
+        subject.onCompleted();
+        realm.close();
     }
+
+
+
+
+
 
 
 

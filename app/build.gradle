@@ -12,12 +12,24 @@ android {
         targetSdkVersion 22
         versionCode 1
         versionName "1.0"
+
+
+        /*ndk {
+            moduleName "realm-jni"
+        }
+        sourceSets.main {
+            jni.srcDirs = []
+            jniLibs.srcDir 'src/main/libs'
+        }*/
+
     }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+
 
     buildTypes {
         release {
@@ -40,11 +52,13 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:22.0.0'
-    compile 'io.realm:realm-android:0.80.0'
+    compile 'io.realm:realm-android:0.80.1'
     compile 'io.reactivex:rxandroid:0.24.0'
     compile 'com.google.guava:guava:18.0'
-    //compile 'com.j256.ormlite:ormlite-android:4.48'
+    compile 'com.j256.ormlite:ormlite-android:4.48'
+    compile 'com.jjoe64:graphview:4.0.0'
     testCompile 'junit:junit:4.12'
+    testCompile "org.mockito:mockito-core:1.9.5"
     testCompile 'org.robolectric:robolectric:2.4'
 
 

@@ -3,14 +3,17 @@ package kr.re.dev.MoogleDic.DicData.Migration;
 /**
  * Created by ice3x2 on 15. 4. 15..
  */
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
@@ -24,16 +27,23 @@ import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+
 
 /**
  * 출처 :: https://github.com/tiancaihb/DangoDict/blob/f2d536930c87ce0203b5295d21ad328e9c44808a/LingoesLd2Reader.java#L21
  * 를 수정하여 사용함.
- *
- * 테스트 완료;;
- *
  *  Copyright (c) 2010 Xiaoyun Zhu
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -88,23 +98,42 @@ import java.util.zip.InflaterInputStream;
  *
  */
 public class LingoesLd2Reader {
-
-    private WeakReference<ReadLd2Event> mReadLd2EventRef = null;
-
+	
+	//private WeakReference<ReadLd2Event> mReadLd2EventRef = null;
+	
     private  final SensitiveStringDecoder[] AVAIL_ENCODINGS = {
             new SensitiveStringDecoder(Charset.forName("UTF-8")),
             new SensitiveStringDecoder(Charset.forName("UTF-16LE")),
             new SensitiveStringDecoder(Charset.forName("UTF-16BE")),
             new SensitiveStringDecoder(Charset.forName("EUC-JP")) };
 
+    
+    LinkedList<Element> mElementList = new LinkedList<>();
+    HashMap<String, Element> mWordMap = new HashMap<>();
+    
+    //String mTxtFile;
+    String mResultPath;
+    
+    /*public static  void main(String[] args) throws IOException, ReadLd2Exception {
+        String ld2File = "./Vicon English-Korean Dictionary.ld2";
+        Pattern ld2FilePattern = Pattern.compile("/[^/]*.(ld2|Ld2|LD2|lD2)$");
+        Matcher matcher = ld2FilePattern.matcher(ld2File);
+       boolean matchs =  matcher.find();
+        int groupCount =  matcher.groupCount();
+        String dbFileName  = matcher.group(groupCount - 1);
+        dbFileName =  dbFileName.replace("/", "").replaceAll("\\s","_").replaceAll("[.](ld2|Ld2|LD2|lD2)", "");
 
-    public  void readLd2(String ld2File, ReadLd2Event readLd2Event) throws IOException {
-        mReadLd2EventRef = new WeakReference<LingoesLd2Reader.ReadLd2Event>(readLd2Event);
-
+        LingoesLd2Reader lingoesLd2Reader = new LingoesLd2Reader();
+        lingoesLd2Reader.readLd2(ld2File);
+    }*/
+    
+    
+    public  String readLd2(String ld2File) throws IOException, ReadLd2Exception {
+    	mResultPath = ld2File.replaceAll("(ld2|Ld2|LD2|lD2)$","") + "txt";
         // download from
         // https://skydrive.live.com/?cid=a10100d37adc7ad3&sc=documents&id=A10100D37ADC7AD3%211172#cid=A10100D37ADC7AD3&sc=documents
         // String ld2File = Helper.DIR_IN_DICTS+"\\lingoes\\Prodic English-Vietnamese Business.ld2";
-        FileChannel fChannel = new RandomAccessFile(ld2File, "r").getChannel();
+    	FileChannel fChannel = new RandomAccessFile(ld2File, "r").getChannel();
         ByteBuffer dataRawBytes = ByteBuffer.allocate((int) fChannel.size());
         fChannel.read(dataRawBytes);
         fChannel.close();
@@ -118,9 +147,9 @@ public class LingoesLd2Reader {
 
         int offsetData = dataRawBytes.getInt(0x5C) + 0x60;
         if (dataRawBytes.limit() > offsetData) {
-            // System.out.println("프로필 주소：0x" + Integer.toHexString(offsetData));
+           // System.out.println("프로필 주소：0x" + Integer.toHexString(offsetData));
             int type = dataRawBytes.getInt(offsetData);
-            // System.out.println("소개 유형：0x" + Integer.toHexString(type));
+           // System.out.println("소개 유형：0x" + Integer.toHexString(type));
             int offsetWithInfo = dataRawBytes.getInt(offsetData + 4) + offsetData + 12;
             if (type == 3) {
                 // without additional information
@@ -128,21 +157,19 @@ public class LingoesLd2Reader {
             } else if (dataRawBytes.limit() > offsetWithInfo - 0x1C) {
                 readDictionary(ld2File, dataRawBytes, offsetWithInfo);
             } else {
-                if(mReadLd2EventRef.get() != null) {
-                    mReadLd2EventRef.get().error(new ReadLd2Exception("Not ld2 format."));
-                }
+            	throw new ReadLd2Exception("Not ld2 format.");
                 //System.err.println("파일 은 사전 데이터를 포함하지 않습니다. 온라인 사전 ?");
             }
         } else {
-            if(mReadLd2EventRef.get() != null) {
-                mReadLd2EventRef.get().error(new ReadLd2Exception("Not ld2 format."));
-            }
+        	throw new ReadLd2Exception("Not ld2 format.");
+
             //System.err.println("파일 은 사전 데이터를 포함하지 않습니다. 온라인 사전 ?");
         }
+        return mResultPath;
     }
 
     private  final long decompress(final String inflatedFile, final ByteBuffer data, final int offset,
-                                   final int length, final boolean append) throws IOException {
+                                         final int length, final boolean append) throws IOException {
         Inflater inflator = new Inflater();
         InflaterInputStream in = new InflaterInputStream(new ByteArrayInputStream(data.array(), offset, length),
                 inflator, 1024 * 8);
@@ -155,14 +182,13 @@ public class LingoesLd2Reader {
         return bytesRead;
     }
 
-    private  final SensitiveStringDecoder[] detectEncodings(final ByteBuffer inflatedBytes, final int offsetWords, final int offsetXml, final int defTotal, final int dataLen, final int[] idxData, final String[] defData) throws UnsupportedEncodingException {
+    private  final SensitiveStringDecoder[] detectEncodings(final ByteBuffer inflatedBytes, final int offsetWords, final int offsetXml, final int defTotal, final int dataLen, final int[] idxData, Element element) throws UnsupportedEncodingException {
         final int test = Math.min(defTotal, 10);
         //Pattern p = Pattern.compile("^.*[\\x00-\\x1f].*$");
         for (int j = 0; j < AVAIL_ENCODINGS.length; j++) {
             for (int k = 0; k < AVAIL_ENCODINGS.length; k++) {
                 try {
-                    readDefinitionData(inflatedBytes, offsetWords, offsetXml, dataLen, AVAIL_ENCODINGS[j],
-                            AVAIL_ENCODINGS[k], idxData, defData, test);
+                    readDefinitionData(inflatedBytes, offsetWords, offsetXml, dataLen, AVAIL_ENCODINGS[j],AVAIL_ENCODINGS[k], idxData, element, test);
                     //System.out.println("구문 코딩：" + AVAIL_ENCODINGS[j].name);
                     //System.out.println("XML인코딩：" + AVAIL_ENCODINGS[k].name);
                     return new SensitiveStringDecoder[] { AVAIL_ENCODINGS[j], AVAIL_ENCODINGS[k] };
@@ -176,7 +202,7 @@ public class LingoesLd2Reader {
     }
 
     private  final void extract(final String inflatedFile,
-                                final int[] idxArray, final int offsetDefs, final int offsetXml) throws IOException, FileNotFoundException,
+                                      final int[] idxArray, final int offsetDefs, final int offsetXml) throws IOException, FileNotFoundException,
             UnsupportedEncodingException {
         //System.out.println("쓰기'" + extractedOutputFile + "'。。。");
 
@@ -194,35 +220,133 @@ public class LingoesLd2Reader {
 
         final int dataLen = 10;
         final int defTotal = offsetDefs / dataLen - 1;
-
+        
 
         //String[] words = new String[defTotal];
         int[] idxData = new int[6];
-        String[] defData = new String[2];
+        //String[] defData = new String[2];
+        Element element = new Element();
 
-        final SensitiveStringDecoder[] encodings = detectEncodings(dataRawBytes, offsetDefs, offsetXml, defTotal,
-                dataLen, idxData, defData);
-
+        final SensitiveStringDecoder[] encodings = detectEncodings(dataRawBytes, offsetDefs, offsetXml, defTotal, dataLen, idxData, element);
+        
+        
         dataRawBytes.position(8);
-        if(mReadLd2EventRef.get() != null) {
-            mReadLd2EventRef.get().startRead(defTotal);
-        }
-
-
+        /*if(mReadLd2EventRef.get() != null) {
+    		mReadLd2EventRef.get().startRead(defTotal);
+    	}*/
+        
+        
+        
         for (int i = 0; i < defTotal; i++) {
-            readDefinitionData(dataRawBytes, offsetDefs, offsetXml, dataLen, encodings[0], encodings[1], idxData, defData, i);
-            //words[i] = defData[0];
-
-            //System.out.println(defData[0] + " = " + defData[1]);
+        	element = new Element();
+            readDefinitionData(dataRawBytes, offsetDefs, offsetXml, dataLen, encodings[0], encodings[1], idxData, element, i);
+            
             dataRawBytes.position(8);
-            if(mReadLd2EventRef.get() != null) {
-                mReadLd2EventRef.get().word(defData[0], defData[1]);
+            
+            mElementList.add(element);
+            if(element.isOriginal) {
+            	mWordMap.put(element.description.get(0), element);
             }
-
         }
+        
+        for(Element ele : mElementList) {
+        	if(ele.refs > 0) {
+        		Iterator<String> iter =  ele.description.iterator();
+        		int count = 0;
+        		while(iter.hasNext()) {
+        			if(ele.word.equals("abode")) {
+        				System.out.println();
+        			}
+        			
+        			String des = iter.next();
+        			if(ele.isOriginal && count == 0) {
+        				count++;
+        				continue;
+        			}
+        			Element oriEle = mWordMap.get(des);
+        			if(oriEle == null) {
+        				System.err.println(ele.word + " is not found.");
+        			}
+        			ele.refList.add(oriEle);
+        			iter.remove();
+        			count++;
+        		}
+        	}
+        }
+        
+        mWordMap.clear();
+        System.out.println("OK! : "+ mElementList.size());
+        ArrayList<Element> pushList = new ArrayList<>();
+        ArrayList<Element> tmpList = new ArrayList<>();
+        Iterator<Element> iter = mElementList.iterator();
+        while(iter.hasNext()) {
+        	Element ele = iter.next();
+        	if(ele.isOriginal && ele.refs == 0) { 
+        		tmpList.add(ele);
+        		iter.remove();
+        	}
+        }
+        Collections.sort(tmpList,new ElementWordComparator());
+        pushList.addAll(tmpList);
+        tmpList.clear();
+        iter = mElementList.iterator();
+        while(iter.hasNext()) {
+        	Element ele = iter.next();
+        	if(ele.isOriginal) { 
+        		tmpList.add(ele);
+        		iter.remove();
+        	}
+        }
+        Collections.sort(tmpList,new ElementWordComparator());
+        pushList.addAll(tmpList);
+        tmpList.clear();
+        iter = mElementList.iterator();
+        while(iter.hasNext()) {
+        	Element ele = iter.next();
+        	tmpList.add(ele);
+        	iter.remove();
+        }
+        Collections.sort(tmpList,new ElementWordComparator());
+        pushList.addAll(tmpList);
+        tmpList.clear();
+        
+        System.out.println(pushList.size());
+        
 
-        /*
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        
+        File outFile = new File(mResultPath);
+        FileOutputStream fos = new FileOutputStream(outFile);
+        FileWriter fw = new FileWriter(outFile);
+        BufferedWriter bw = new BufferedWriter(fw);
+        int originalCount = 0;
+        bw.write(pushList.size() + "");
+        bw.newLine();
+        for(int i = 0, n = pushList.size(); i < n; ++i) {
+        	Element we = pushList.get(i);
+        	bw.write(we.word);
+        	bw.newLine();
+        	bw.write((we.isOriginal)?"[base]":"[derivation]"); // 원형 : 파생형
+        	bw.newLine();
+        	if(we.isOriginal) {
+        		if(we.description.size() > 1) System.err.println("Size error!!");
+        		bw.write(we.description.get(0));
+        		bw.newLine();
+        		originalCount++;
+        	} 
+        	bw.write(we.refs + "");
+        	for(Element derivationElement : we.refList) {
+        		bw.write("\n" + derivationElement.word);
+        	}
+        	bw.newLine();
+        	bw.newLine();
+        }
+        bw.flush();
+        fos.close();
+        
+        
+        System.out.println("original word : " + originalCount);
+        /*
         try {
         	InputStream istream = new ByteArrayInputStream(defData[1].getBytes("utf-8"));
         	Document doc =factory.newDocumentBuilder().parse(istream);
@@ -243,13 +367,13 @@ public class LingoesLd2Reader {
 			e.printStackTrace();
 			return;
 		}*/
-
-
-
+        
+        
+        
         new File(inflatedFile).delete();
-
-
-
+        
+        
+        
 
         //System.out.println("성공적인 판독" + counter + "/" + defTotal + " 데이터 셋");
     }
@@ -283,8 +407,8 @@ public class LingoesLd2Reader {
     }
 
     private  final void readDefinitionData(final ByteBuffer inflatedBytes, final int offsetWords,
-                                           final int offsetXml, final int dataLen, final SensitiveStringDecoder wordStringDecoder,
-                                           final SensitiveStringDecoder xmlStringDecoder, final int[] idxData, final String[] defData, final int i)
+                                                 final int offsetXml, final int dataLen, final SensitiveStringDecoder wordStringDecoder,
+                                                 final SensitiveStringDecoder xmlStringDecoder, final int[] idxData, Element element,  final int i)
             throws UnsupportedEncodingException {
         getIdxData(inflatedBytes, dataLen * i, idxData);
         int lastWordPos = idxData[0];
@@ -293,30 +417,45 @@ public class LingoesLd2Reader {
         int refs = idxData[3];
         int currentWordOffset = idxData[4];
         int currenXmlOffset = idxData[5];
-
-        //String xml = strip(new String(xmlStringDecoder.decode(inflatedBytes.array(), offsetXml + lastXmlPos, currenXmlOffset - lastXmlPos)));
-        String xml = new String(xmlStringDecoder.decode(inflatedBytes.array(), offsetXml + lastXmlPos, currenXmlOffset - lastXmlPos));
-        defData[1] = xml;
+        element.refList.clear();
+        element.description.clear();
+        
+        element.refs = refs;
+        
+        String xml ="";
+        //if(refs == 0)  {
+        	xml = new String(xmlStringDecoder.decode(inflatedBytes.array(), offsetXml + lastXmlPos, currenXmlOffset - lastXmlPos));
+        	if(xml != null && !xml.isEmpty()) {
+        		element.description.add(xml);
+        	}
+        //}
         while (refs-- > 0) {
+        	// 원래대로라면 단어가 시작되어야 하는 부분인데? 
             int ref = inflatedBytes.getInt(offsetWords + lastWordPos);
             getIdxData(inflatedBytes, dataLen * ref, idxData);
             lastXmlPos = idxData[1];
             currenXmlOffset = idxData[5];
-            if (xml.isEmpty()) {
-                //xml = strip(new String(xmlStringDecoder.decode(inflatedBytes.array(), offsetXml + lastXmlPos, currenXmlOffset - lastXmlPos)));
-                xml = new String(xmlStringDecoder.decode(inflatedBytes.array(), offsetXml + lastXmlPos, currenXmlOffset - lastXmlPos));
-                defData[1] = xml;
-            } else {
-                xml = new String(xmlStringDecoder.decode(inflatedBytes.array(), offsetXml + lastXmlPos, currenXmlOffset - lastXmlPos)) + ", " + xml;
-            }
+            xml = new String(xmlStringDecoder.decode(inflatedBytes.array(), offsetXml + lastXmlPos, currenXmlOffset - lastXmlPos));
+            
+            element.description.add(xml);
             lastWordPos += 4;
         }
+        
         String word = new String(wordStringDecoder.decode(inflatedBytes.array(), offsetWords + lastWordPos,currentWordOffset - lastWordPos));
-        defData[0] = word;
-    }
+        if(element.description.size() != element.refs) {
+        	element.isOriginal = true;
+        } else {
+        	element.isOriginal = false;
+        }
+        
+        element.word = word;
+        
 
+    }
+    
+    
     private  final void readDictionary(final String ld2File, final ByteBuffer dataRawBytes,
-                                       final int offsetWithIndex) throws IOException, FileNotFoundException, UnsupportedEncodingException {
+                                             final int offsetWithIndex) throws IOException, FileNotFoundException, UnsupportedEncodingException {
         //System.out.println("사전 유형：0x" + Integer.toHexString(dataRawBytes.getInt(offsetWithIndex)));
         int limit = dataRawBytes.getInt(offsetWithIndex + 4) + offsetWithIndex + 8;
         int offsetIndex = offsetWithIndex + 0x1C;
@@ -344,7 +483,7 @@ public class LingoesLd2Reader {
         inflate(dataRawBytes, deflateStreams, inflatedFile);
 
         if (new File(inflatedFile).isFile()) {
-
+       
             dataRawBytes.position(offsetIndex);
             int[] idxArray = new int[definitions];
             for (int i = 0; i < definitions; i++) {
@@ -358,11 +497,11 @@ public class LingoesLd2Reader {
         int open = 0;
         int end = 0;
         if(xml.isEmpty()) {
-            System.out.println("XML is Empty");
-            return "XML is Empty";
+        	//System.out.println("XML is Empty");
+        	return "";
         }
-
-
+ 
+        
         if ((open = xml.indexOf("<![CDATA[")) != -1) {
             if ((end = xml.indexOf("]]>", open)) != -1) {
                 return xml.substring(open + "<![CDATA[".length(), end).replace('\t', ' ').replace('\n', ' ')
@@ -441,17 +580,32 @@ public class LingoesLd2Reader {
             }
         }
     }
-
-    public static interface ReadLd2Event {
-        void word(String word, String xml);
-        void error(Exception e);
-        void startRead(int totalWords);
+    
+    public static class Element {
+    	public String word;
+    	public List<Element> refList = new ArrayList<>();
+    	public List<String> description = new ArrayList<>();
+    	public boolean isOriginal;
+    	public int refs; 
     }
-
+    public static class ElementWordComparator implements Comparator<Element> {
+		@Override
+		public int compare(Element o1, Element o2) {
+			return o1.word.compareTo(o2.word);
+			
+		}
+	};
+    
+    /*public static interface ReadLd2Event {
+    	public void word(Element element);
+    	public void error(Exception e);
+    	public void startRead(int totalWords);
+    }
+    */
     public static class ReadLd2Exception extends Exception {
-        private ReadLd2Exception(String msg) {
-            super(msg);
-        }
+    	private ReadLd2Exception(String msg) {
+    		super(msg);
+		}
     }
 }
 /*

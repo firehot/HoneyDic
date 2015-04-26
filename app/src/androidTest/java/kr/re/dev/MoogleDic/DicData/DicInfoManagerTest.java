@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
+import kr.re.dev.MoogleDic.DicData.Database.DicInfoManager;
+
 /**
  * Created by ice3x2 on 15. 4. 22..
  *
