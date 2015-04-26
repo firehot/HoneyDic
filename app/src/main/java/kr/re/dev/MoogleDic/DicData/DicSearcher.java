@@ -3,19 +3,27 @@ package kr.re.dev.MoogleDic.DicData;
 import android.content.Context;
 import android.util.Log;
 
+import com.google.common.collect.Lists;
+
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 import io.realm.Realm;
+import io.realm.RealmList;
 import io.realm.RealmResults;
 import kr.re.dev.MoogleDic.Commons.ProgressEvent;
+import kr.re.dev.MoogleDic.DicData.Database.KeyWordColumns;
+import kr.re.dev.MoogleDic.DicData.Database.WordColumns;
 import rx.Observable;
 import rx.Subscriber;
 import rx.schedulers.Schedulers;
@@ -30,8 +38,8 @@ public class DicSearcher {
     private volatile Observable<Realm> mInitRealObservable;
     private ReplaySubject<ProgressEvent> mProgressSubject = ReplaySubject.create();
     private ExecutorService mSingleExecutor = Executors.newSingleThreadExecutor();
+    private AtomicBoolean mIsRealmClosed = new AtomicBoolean(false);
     private String mDicName = "";
-
 
     /**
      * DicSearcher 생성.
@@ -55,20 +63,29 @@ public class DicSearcher {
 
     /**
      * 단어를 검색한다.
+     * 반드시 onErrorResumeNext 를 통하여 에러 발생시 대처를 해야 한다.
      * @param word 앞뒤에 공백이 있어도 상관없다. 대소문자 가리지 않는다.
      * @return 검색한 사전 내용을 받아올 수 있는 이벤트.
      */
-    public Observable<DictionaryWord> search(String word) {
-        return null;
-        /*return mInitRealObservable.flatMap(realm -> Observable.just(realm)
-                .map(realm1 -> searchWord(realm1, word)).subscribeOn(Schedulers.from(mSingleExecutor)));*/
+    public Observable<List<WordCard>> search(String word) {
+        return mInitRealObservable
+                .flatMap(realm ->
+                        Observable.just(realm).map(realm1 -> searchWordSafe(realm1, word)).subscribeOn(Schedulers.from(mSingleExecutor)));
     }
 
     /**
      * 사전을 닫아준다.
      */
     public void close() {
+        mInitRealObservable.flatMap(realm -> Observable.just(realm).subscribeOn(Schedulers.from(mSingleExecutor))
+        .map(realmIn -> { mIsRealmClosed.set(true);
+                          realmIn.close();
+                          return realmIn;
+                        })).subscribe();
+    }
 
+    public String getDicname() {
+        return mDicName;
     }
 
 
@@ -135,26 +152,82 @@ public class DicSearcher {
     }
 
 
-    private List<WordCard> searchWord(Realm realm, String word) {
-        word =  word.replaceAll("^[ \\t\\r\\n\\f]{0,}","").replaceAll("[ \\t\\r\\n\\f]{0,}$","");
-        DictionaryWord emptyDBColumn =  new DictionaryWord();
-        emptyDBColumn.setDicName("");
-        /*if(word.isEmpty()) {
-            return emptyDBColumn;
+    private List<WordCard> searchWordSafe(Realm realm, String word) {
+        if(mIsRealmClosed.get()) {
+            throw  new RuntimeException(new AlreadyClosedDBException(mDicName));
         }
+        word = word.replaceAll("^[ \\t\\r\\n\\f]{0,}","").replaceAll("[ \\t\\r\\n\\f]{0,}$","");
+        List<WordCard> wordCards = searchWord(realm,word);
 
-        Log.i("testio","search by : " + word);
-        RealmResults<DictionaryWord> results =  realm.where(DictionaryWord.class).equalTo("keyword", word, false).findAll();
-        Log.i("testio", "result size : " + results.size() + "");
-        if(!results.isEmpty()) {
-            Log.i("testio","result!!");
-            return results.get(0);
+        if(wordCards.isEmpty() && word.matches("ies$")) {
+            wordCards = searchWord(realm, word.replace("ies$", "y"));
         }
-
-        emptyDBColumn.setWord("");
-        return emptyDBColumn;*/
-        return null;
+        if(wordCards.isEmpty() && word.matches("ier$")) {
+            wordCards = searchWord(realm, word.replace("ier$", "y"));
+        }
+        if(wordCards.isEmpty() && word.matches("es$")) {
+            wordCards = searchWord(realm, word.replace("es$", ""));
+        }
+        if(wordCards.isEmpty() && word.matches("s$")) {
+            wordCards = searchWord(realm, word.replace("s$", ""));
+        }
+        if(wordCards.isEmpty() && word.matches("ed$")) {
+            wordCards = searchWord(realm, word.replace("ed$", ""));
+        }
+        if(wordCards.isEmpty() && word.matches("d$")) {
+            wordCards = searchWord(realm, word.replace("d$", ""));
+        }
+        if(wordCards.isEmpty() && word.matches("ing$")) {
+            wordCards = searchWord(realm,word.replace("ing$", ""));
+        }
+        return moveFirstSameWord(wordCards, word);
     }
+
+    private List<WordCard> moveFirstSameWord(List<WordCard> wordCards, String word) {
+        List<WordCard> results = Lists.newArrayListWithCapacity(wordCards.size());
+        Iterator<WordCard> iter =  wordCards.iterator();
+        while(iter.hasNext()) {
+            WordCard wordCard = iter.next();
+            if(wordCard.word().equals(word)) {
+                iter.remove();
+                results.add(wordCard);
+                break;
+            }
+        }
+        results.addAll(wordCards);
+        return results;
+    }
+
+
+    private List<WordCard> searchWord(Realm realm, String word) {
+
+        List<WordCard> results = Lists.newArrayList();
+        if(word.isEmpty()) {
+            return results;
+        }
+        RealmResults<KeyWordColumns> resultRealm =  realm.where(KeyWordColumns.class).equalTo("keyword", word, false).findAll();
+        if(resultRealm.isEmpty()) {
+            return results;
+        }
+        for(KeyWordColumns keywordColumns : resultRealm) {
+            RealmList<WordColumns> wordColumnses = keywordColumns.getWords();
+            if(wordColumnses == null) continue;
+            for(WordColumns wordColumns : wordColumnses) {
+                WordCard wordCard =  WordCard.newInstance(wordColumns);
+                results.add(wordCard);
+            }
+        }
+        return results;
+    }
+
+
+    public static class AlreadyClosedDBException extends Exception{
+        private  AlreadyClosedDBException(String DBName) {
+            super("Already closed DB : " + DBName);
+        }
+    }
+
+
 
 
 

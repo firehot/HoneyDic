@@ -11,9 +11,15 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import kr.re.dev.MoogleDic.DicData.Database.WordColumns;
+import rx.Observable;
+
+
 
 
 /**
+ * 사전 검색 테스트.
+ * 이슈 : 단어로 DB 에서 뜻 검색하기 [3+] #2
+ *
  * Created by ice3x2 on 15. 4. 16..
  */
 public class DicSearcherTest extends ApplicationTestCase<Application> {
@@ -25,9 +31,9 @@ public class DicSearcherTest extends ApplicationTestCase<Application> {
 
 
 
+    public void  testSearchFor_Vicon_English_Korean_Dictionary() {
 
-    public void  testSearch() {
-       Context context =  getContext();
+        Context context =  getContext();
         File dbFile = new File(context.getFilesDir(), "Vicon English-Korean Dictionary.db");
         dbFile.delete();
 
@@ -47,10 +53,7 @@ public class DicSearcherTest extends ApplicationTestCase<Application> {
                     }
 
                     Log.d("testio", event.getProgress() + "%");
-                    if (event.getProgress() >= 99) {
-                        //latch.countDown();
-                    }
-        });
+                });
 
         Log.d("testio", "search test");
         // 원형 및 레퍼런스 단어 테스트.
@@ -71,7 +74,7 @@ public class DicSearcherTest extends ApplicationTestCase<Application> {
             assertEquals(descriptionCard.meaning(), " 권투, 두사람이 치고 받는 운동");
 
             wordCard = wordCardList.get(1);
-            assertEquals(wordCard.getRaw(), "<C><F><H><M>bɒks</M></H><I><N><U>n.</U> 통; 상자; 칸막이한 좌석; 손바닥으로 침, 주먹으로 침;텔레비젼</N></I><I><N><U>v.</U> 주먹질 하며 싸우다; 박스에 넣다</N></I></F></C>");
+            assertEquals(wordCard.raw(), "<C><F><H><M>bɒks</M></H><I><N><U>n.</U> 통; 상자; 칸막이한 좌석; 손바닥으로 침, 주먹으로 침;텔레비젼</N></I><I><N><U>v.</U> 주먹질 하며 싸우다; 박스에 넣다</N></I></F></C>");
             assertEquals(wordCard.word(), "box");
             assertEquals(wordCard.phonetic(), "bɒks");
             descriptionCardList = wordCard.getDescriptionCards();
@@ -110,7 +113,20 @@ public class DicSearcherTest extends ApplicationTestCase<Application> {
             assertEquals(wordCard.word(), "trust");
         });
 
-        dicSearcher.search("\r    Trust \t\t   \n").doOnError(e -> {
+        dicSearcher.search("\r    Truth \t\t   \n").doOnError(e -> {
+            StackTraceElement[] stackTraceElements =  e.getStackTrace();
+            for(StackTraceElement ste : stackTraceElements) {
+                Log.e("testio", ste.toString());
+            }
+            fail(e.getMessage());
+            latch.countDown();
+        }).subscribe(wordCardList -> {
+            assertEquals(wordCardList.size(), 2);
+            WordCard wordCard = wordCardList.get(0);
+            assertEquals(wordCard.word(), "Truth");
+        });
+
+        dicSearcher.search("\r    Ladies \t\t   \n").doOnError(e -> {
             StackTraceElement[] stackTraceElements =  e.getStackTrace();
             for(StackTraceElement ste : stackTraceElements) {
                 Log.e("testio", ste.toString());
@@ -119,9 +135,23 @@ public class DicSearcherTest extends ApplicationTestCase<Application> {
             latch.countDown();
         }).subscribe(wordCardList -> {
             WordCard wordCard = wordCardList.get(0);
-            assertEquals(wordCard.word(), "Trust");
+            assertEquals(wordCard.word(), "lady");
+        });
+
+
+        dicSearcher.close();
+
+        dicSearcher.search("\r    Trust \t\t   \n").onErrorResumeNext(e -> {
+            if(!(e.getCause() instanceof DicSearcher.AlreadyClosedDBException)) {
+                fail("not AlreadyClosedDBException");
+            }
+            latch.countDown();
+            return Observable.empty();
+        }).subscribe(wordCardList -> {
+            fail();
             latch.countDown();
         });
+
 
 
 
