@@ -1,33 +1,67 @@
 package kr.re.dev.MoogleDic.Commons;
 
+import java.util.concurrent.Semaphore;
+
 /**
  * Created by ice3x2 on 15. 4. 21..
  */
 public class ProgressEvent {
 
+    private int mAction = 0;
     private int mProgress;
+    private int mMax = 100;
     private boolean mIsComplete;
     private boolean mIsRecycled;
-    private int mMax = 100;
-    private static ProgressEvent sEnd;
+    private boolean mIsError = false;
+    private boolean mShutdown = false;
     private ProgressEvent mPrev;
     private Throwable mException;
     private Object mTag;
-    private boolean mIsError = false;
-
+    private static ProgressEvent sEnd;
+    private static Semaphore sSemaphore = new Semaphore(1);
 
     public static ProgressEvent obtain() {
-        if(sEnd == null) {
-            return  new ProgressEvent();
+        try {
+            sSemaphore.acquire();
+        } catch (InterruptedException e1) {
+            e1.printStackTrace();
+        }
+        if (sEnd == null) {
+            sSemaphore.release();
+            return new ProgressEvent();
         } else {
             ProgressEvent event = sEnd;
             sEnd = sEnd.mPrev;
+            sSemaphore.release();
             return event;
         }
+
+
+    }
+
+    public static ProgressEvent obtain(ProgressEvent event) {
+        ProgressEvent nEvent = obtain();
+        nEvent.copyFrom(event);
+        return nEvent;
+    }
+
+    public void copyFrom(ProgressEvent event) {
+        this.mProgress = event.mProgress;
+        this.mIsComplete = event.mIsComplete;
+        this.mIsRecycled = event.mIsRecycled;
+        this.mMax = event.mMax;
+        this.mPrev = event.mPrev;
+        this.mException = event.mException;
+        this.mTag = event.mTag;
+        this.mIsError = event.mIsError;
+        this.mAction = event.mAction;
+        this.mShutdown = event.mShutdown;
+
     }
 
     public static ProgressEvent obtain(Throwable e) {
-        ProgressEvent event =  obtain();
+        ProgressEvent event = null;
+        event = obtain();
         event.setMax(0).setProgress(0).setComplete(false);
         event.mIsError = true;
         event.mException = e;
@@ -35,9 +69,23 @@ public class ProgressEvent {
     }
 
     public static ProgressEvent obtain(int max, int progress, boolean isComplete) {
-        ProgressEvent event =  obtain();
+        ProgressEvent event = null;
+        event = obtain();
         event.setMax(max).setProgress(progress).setComplete(isComplete);
         return event;
+
+    }
+
+    private static void reset(ProgressEvent event) {
+        event.mProgress = 0;
+        event.mIsComplete = false;
+        event.mIsRecycled = false;
+        event.mMax = 100;
+        event.mException = null;
+        event.mTag = null;
+        event.mIsError = false;
+        event.mAction = 0;
+        event.mShutdown = false;
     }
 
     public static void clearResource() {
@@ -47,9 +95,16 @@ public class ProgressEvent {
     }
 
     public void recycle() {
+        reset(this);
         mIsRecycled = true;
-        mPrev = sEnd;
-        sEnd = this;
+        try {
+            sSemaphore.acquire();
+        } catch (InterruptedException e1) {
+            e1.printStackTrace();
+        }
+            mPrev = sEnd;
+            sEnd = this;
+        sSemaphore.release();
     }
 
     public boolean isRecycled() {
@@ -91,6 +146,19 @@ public class ProgressEvent {
         return mTag;
     }
 
+    public int getAction() {
+        return mAction;
+    }
+    public ProgressEvent setAction(int action) {
+        mAction = action;
+        return this;
+    }
+    public void shutdownIfPossible() {
+        mShutdown = true;
+    }
+    public boolean isShutdownCalled() {
+        return mShutdown;
+    }
 
 
 
