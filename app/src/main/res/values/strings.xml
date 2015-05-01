@@ -3,4 +3,10 @@
 
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="sample_word">Word</string>
+    <string name="sample_phonetic_word">[Phonetic Word]</string>
+    <string name="sample_word_class">n.</string>
+    <string name="sample_word_mean"> 단어, 낱말; (노래의) 가사; 소식, 소문, (떠도는) 말, 정보; 이야기, 말, (말・글의) 마디</string>
+    <string name="Dictionary_English_Korean_Name">Vicon English-Korean dictionary</string>
+
 </resources>

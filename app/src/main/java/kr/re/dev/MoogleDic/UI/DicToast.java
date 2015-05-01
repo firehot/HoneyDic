@@ -1,16 +1,31 @@
 package kr.re.dev.MoogleDic.UI;
 
 import android.content.Context;
+import android.graphics.PixelFormat;
+import android.graphics.Point;
 import android.graphics.Rect;
+import android.os.Handler;
+import android.util.Log;
+import android.view.Display;
+import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
+import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.common.collect.Lists;
 
 import java.util.List;
 
+import kr.re.dev.MoogleDic.Commons.ViewWrapper;
 import kr.re.dev.MoogleDic.DicData.WordCard;
+import kr.re.dev.MoogleDic.R;
 import rx.Observable;
 
 /**
@@ -18,80 +33,98 @@ import rx.Observable;
  * 첫 번째 버전에서 좌우 슬라이딩이 가능하다.
  * Created by ice3x2 on 15. 4. 15..
  */
-public class DicToast {
+public class DicToast extends ViewWrapper {
+
+
+
+    @Override
+    public void update() {
+
+    }
 
     enum Hide { Left, Rigth}
 
-    private Rect        mPosition;
-    private Context     mContext;
-    private FrameLayout mLayoutContent;
+
     private ListView    mListViewWordCard;
+    private WindowManager.LayoutParams mWindowLayoutParams;
+    private WindowManager mWindowManager;
+    private WordCardListAdapter mListAdapter;
+    private boolean mIsAttached = false;
 
-    private List<WordCard> mWordCardList;
+
+    private void DicToast() {}
 
 
-    public void show() {
-
+    public DicToast(Context context) {
+        super(context, R.layout.view_wordcard);
+        initToastView();
     }
 
-    private void DicToast() {
+    private void initToastView() {
+        mWindowManager = (WindowManager)getContext().getSystemService(Context.WINDOW_SERVICE);
+        //Display display =  mWindowManager.getDefaultDisplay();
+        mWindowLayoutParams = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                PixelFormat.TRANSLUCENT);
+        mWindowLayoutParams.gravity = Gravity.TOP | Gravity.CENTER;
 
+        mWindowLayoutParams.windowAnimations = R.style.Animation_DicToast;
+        mListViewWordCard = (ListView)findViewById(R.id.listViewWordCard);
+        mListAdapter = new WordCardListAdapter(getContext());
+        mListViewWordCard.setAdapter(mListAdapter);
     }
 
-    public static void setWordCards(List<WordCard> wordCard) {
-
+    public void setListViewWordCard(List<WordCard> wordCardList) {
+        mListAdapter.clear();
+        mListAdapter.addAll(wordCardList);
     }
 
-    public void changeWordCards(List<WordCard> wordCard) {
-
+    public void show(List<WordCard> wordCardList) {
+        DicItemViewWrapper.recycleAll();
+        setListViewWordCard(wordCardList);
+        if(mIsAttached == false) {
+            mIsAttached = true;
+            mWindowManager.addView(getView(),mWindowLayoutParams);
+            new Handler().postDelayed(() -> mWindowManager.removeView(getView()), 20000);
+        }
+        Toast toast;
     }
 
-    public void setPosition(int top, int right, int width, int height) {
-
-    }
-    public void setWidth(int width) {
-
-    }
-    public void setHeigth(int height) {
-
-    }
-    public void setTop(int top) {
-
-    }
-    public void setRight(int right) {
-
-    }
-    public void setCenter(int center) {
-
-    }
-
+    /**
+     * 에러 발생 존재하지 않음.
+     * @return
+     */
     public Observable<Hide> getHideEvent() {
         return  null;
     }
 
+    /**
+     * 에러 발생 존재하지 않음.
+     * @return
+     */
     public Observable<WordCard> getSelectWordEvent() {
         return null;
     }
 
 
-    private void hide() {
-
-    }
-
-
 
     public class WordCardListAdapter extends ArrayAdapter<WordCard> {
-        public WordCardListAdapter(Context context, int resource, List<WordCard> objects) {
-            super(context, resource, objects);
+        public WordCardListAdapter(Context context) {
+            super(context, R.layout.item_wordcard);
         }
-
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            if(convertView != null) {
-                DicItemViewWrapper dicItem = (DicItemViewWrapper)convertView.getTag();
-            } else {
-                DicItemViewWrapper dicItem = DicItemViewWrapper.obtain(getContext());
-            }
+            DicItemViewWrapper dicItem = null;
+            //if(convertView != null) {
+            //} else {
+                dicItem = DicItemViewWrapper.obtain(getContext());
+                convertView = dicItem.getView();
+                //convertView.setTag(dicItem);
+            //}
+            WordCard wordCard = getItem(position);
+            dicItem.setWordCard(wordCard);
             return convertView;
         }
     }

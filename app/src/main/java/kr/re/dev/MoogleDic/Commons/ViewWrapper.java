@@ -51,6 +51,10 @@ public abstract class ViewWrapper {
 		return view;
 	}
 
+	public View findViewById(int id) {
+		return view.findViewById(id);
+	}
+
 	public abstract void update();
 }
 

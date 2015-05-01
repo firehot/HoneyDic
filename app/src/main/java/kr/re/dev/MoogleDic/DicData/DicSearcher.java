@@ -48,8 +48,13 @@ public class DicSearcher {
      * @return DicSearcher 의 인스턴스.
      * @throws IOException 만약 Assets 폴더에 두 번째 인자로 입력한 DB 이름에 해당하는 파일이 없을 경우 발생한다.
      */
-    public static DicSearcher newInstance(Context context, String dbName) throws IOException {
-        return  new DicSearcher(context, dbName);
+    public static DicSearcher newInstance(Context context, String dbName) {
+        try {
+            return  new DicSearcher(context, dbName);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     /**

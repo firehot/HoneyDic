@@ -5,4 +5,10 @@
         <!-- Customize your theme here. -->
     </style>
 
+    <style name="Animation"/>
+
+    <style name="Animation.DicToast">
+        <item name="android:windowEnterAnimation">@anim/dictoast_enter</item>
+    </style>
+
 </resources>
