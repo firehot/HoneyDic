@@ -34,7 +34,8 @@
             android:typeface="sans"
             android:textSize="14sp"
             android:layout_gravity="bottom|left"
-            android:layout_marginLeft="6dp" />
+            android:layout_marginLeft="6dp"
+            android:layout_marginRight="16dp" />
     </LinearLayout>
 
 </LinearLayout>

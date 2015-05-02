@@ -1,4 +1,4 @@
-package kr.re.dev.MoogleDic.DicData;
+package kr.re.dev.MoongleDic.DicData;
 
 import android.app.Application;
 import android.content.Context;
@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import kr.re.dev.MoogleDic.DicData.Database.WordColumns;
 import rx.Observable;
 
 

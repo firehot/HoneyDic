@@ -9,6 +9,9 @@
 
     <style name="Animation.DicToast">
         <item name="android:windowEnterAnimation">@anim/dictoast_enter</item>
+        <!--<item name="android:windowExitAnimation">@anim/dictoast_enter</item>-->
     </style>
+
+
 
 </resources>

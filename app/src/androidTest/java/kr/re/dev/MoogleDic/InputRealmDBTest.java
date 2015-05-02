@@ -1,4 +1,4 @@
-package kr.re.dev.MoogleDic;
+package kr.re.dev.MoongleDic;
 
 import android.app.Application;
 import android.content.Context;
@@ -11,10 +11,10 @@ import java.util.concurrent.CountDownLatch;
 import io.realm.Realm;
 import io.realm.RealmList;
 import io.realm.RealmResults;
-import kr.re.dev.MoogleDic.Commons.ProgressEvent;
-import kr.re.dev.MoogleDic.DicData.Database.KeyWordColumns;
-import kr.re.dev.MoogleDic.DicData.Migration.Ld2Migrator;
-import kr.re.dev.MoogleDic.DicData.Database.WordColumns;
+import kr.re.dev.MoongleDic.Commons.ProgressEvent;
+import kr.re.dev.MoongleDic.DicData.Database.KeyWordColumns;
+import kr.re.dev.MoongleDic.DicData.Migration.Ld2Migrator;
+import kr.re.dev.MoongleDic.DicData.Database.WordColumns;
 import rx.Observable;
 
 /**

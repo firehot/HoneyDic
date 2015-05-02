@@ -1,4 +1,4 @@
-package kr.re.dev.MoogleDic;
+package kr.re.dev.MoongleDic;
 
 import android.app.Application;
 import android.content.Context;
@@ -11,8 +11,8 @@ import java.io.InputStream;
 
 import io.realm.Realm;
 import io.realm.RealmList;
-import kr.re.dev.MoogleDic.DicData.Database.KeyWordColumns;
-import kr.re.dev.MoogleDic.DicData.Database.WordColumns;
+import kr.re.dev.MoongleDic.DicData.Database.KeyWordColumns;
+import kr.re.dev.MoongleDic.DicData.Database.WordColumns;
 
 /**
  * Created by ice3x2 on 15. 4. 22..

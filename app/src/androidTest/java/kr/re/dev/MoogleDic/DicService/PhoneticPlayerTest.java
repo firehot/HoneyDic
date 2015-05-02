@@ -1,4 +1,4 @@
-package kr.re.dev.MoogleDic.DicService;
+package kr.re.dev.MoongleDic.DicService;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

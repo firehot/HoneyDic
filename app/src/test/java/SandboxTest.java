@@ -1,42 +1,15 @@
-import android.content.Context;
-import android.util.Base64;
-
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Joiner;
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ComparisonChain;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Ordering;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-
-import retrofit.RestAdapter;
-import retrofit.RetrofitError;
 import retrofit.client.Response;
 import retrofit.http.GET;
 import retrofit.http.Headers;
 import retrofit.http.Path;
 
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.fail;
 
 /**
  * Created by ice3x2 on 15. 4. 25..
@@ -63,7 +36,9 @@ public class SandboxTest {
     public void testAvailable() throws IOException, InterruptedException {
 
 
-
+         System.out.println(Character.UnicodeBlock.of('A') == Character.UnicodeBlock.BASIC_LATIN);
+        System.out.println(Character.UnicodeBlock.of('Z') == Character.UnicodeBlock.BASIC_LATIN);
+        System.out.println(Character.UnicodeBlock.of('ㅎ') == Character.UnicodeBlock.HANGUL_SYLLABLES);
 
 
 
