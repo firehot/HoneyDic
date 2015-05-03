@@ -10,9 +10,6 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.google.common.collect.Lists;
-
-import java.util.List;
-
 import kr.re.dev.MoongleDic.DicData.Database.DicInfoManager;
 import kr.re.dev.MoongleDic.DicData.DicSearcher;
 import kr.re.dev.MoongleDic.DicData.LocaleWordRefiner;
@@ -20,8 +17,6 @@ import kr.re.dev.MoongleDic.DicData.WordCard;
 import kr.re.dev.MoongleDic.UI.DicItemViewWrapper;
 import kr.re.dev.MoongleDic.UI.DicToast;
 import rx.Observable;
-import rx.functions.Func2;
-import rx.subjects.PublishSubject;
 
 public class DicService extends Service {
 
@@ -57,13 +52,16 @@ public class DicService extends Service {
         mClipboardManager = (ClipboardManager)context.getSystemService(Context.CLIPBOARD_SERVICE);
         mClipboardManager.addPrimaryClipChangedListener(mOnPrimaryClipChangedListener);
         mPhoneticPlayer = PhoneticPlayer.newInstance(context, mDicInfo.getFromLanguage());
+        mDicToast.getSelectWordEvent().subscribe(mPhoneticPlayer::play);
 
     }
+
+
 
     @Override
     public void onDestroy() {
         DicItemViewWrapper.recycleAll();
-        mPhoneticPlayer.stop();
+        mPhoneticPlayer.close();
         mDicSearcher.close();
         mClipboardManager.removePrimaryClipChangedListener(mOnPrimaryClipChangedListener);
         super.onDestroy();
@@ -72,20 +70,25 @@ public class DicService extends Service {
     private ClipboardManager.OnPrimaryClipChangedListener mOnPrimaryClipChangedListener = new ClipboardManager.OnPrimaryClipChangedListener() {
         @Override
         public void onPrimaryClipChanged() {
-            ClipData data =  mClipboardManager.getPrimaryClip();
-            if(data.getItemCount() <= 0) return;
-            Object textItem =  data.getItemAt(0).getText();
-            if(textItem != null) {
-                String text = textItem.toString();
-                String keyWord = LocaleWordRefiner.refine(text, mDicInfo.getFromLanguage());
-                // 다른 애플리케이션의 클립보드 조작(?)으로
-                // 이미 출력된 단어 카드의 중복 출력을 방지한다.
-                if(!mCurrentKeyword.equals(keyWord)) {
-                    mCurrentKeyword = keyWord;
-                    showWord(keyWord);
-                }
+            String text = getTextOnClipboard();
+            String keyWord = LocaleWordRefiner.refine(text, mDicInfo.getFromLanguage());
+            // 다른 애플리케이션의 클립보드 조작(?)으로
+            // 이미 출력된 단어 카드의 중복 출력을 방지한다.
+            if(!mCurrentKeyword.equals(keyWord)) {
+                mCurrentKeyword = keyWord;
+                showWord(keyWord);
             }
         }
+        private String getTextOnClipboard() {
+            ClipData data =  mClipboardManager.getPrimaryClip();
+            if(data.getItemCount() <= 0) return "";
+            Object textItem =  data.getItemAt(0).getText();
+            if(textItem != null) {
+                return textItem.toString();
+            }
+            return "";
+        }
+
     };
 
     private void showWord(String word) {
@@ -103,6 +106,7 @@ public class DicService extends Service {
 
     private void endWordCard(DicToast.HideDirection hide) {
         mCurrentKeyword = "";
+        mPhoneticPlayer.stoP();
         Log.i("testio", (hide == DicToast.HideDirection.Left)?"왼쪽":"오른쪽");
         Toast.makeText(getApplicationContext(), (hide == DicToast.HideDirection.Left)?"왼쪽":"오른쪽", Toast.LENGTH_SHORT).show();
     }

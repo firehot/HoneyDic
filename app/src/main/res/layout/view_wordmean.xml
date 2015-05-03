@@ -12,7 +12,9 @@
         android:layout_gravity="left|top"
         android:layout_marginLeft="16dp"
         android:textColor="#cc3333"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:typeface="sans" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -23,7 +25,7 @@
         android:layout_gravity="left|top"
         android:layout_marginLeft="6dp"
         android:layout_marginRight="16dp"
-        android:textColor="#202020"
+        android:textColor="#444444"
         android:textSize="14sp"
-        android:layout_marginBottom="3dp" />
+        android:typeface="sans" />
 </LinearLayout>

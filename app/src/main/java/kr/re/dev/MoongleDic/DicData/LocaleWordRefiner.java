@@ -3,6 +3,7 @@ package kr.re.dev.MoongleDic.DicData;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -42,6 +43,8 @@ public class LocaleWordRefiner {
      * @return
      */
     public final static String refine(String line, Locale locale) {
+        if(isURI(line)) return "";
+
         String[] words =  line.split("\\s");
         StringBuilder stringBuilder = new StringBuilder();
         List<Character.UnicodeBlock> unicodeBlockList =  UNICODE_MAP.get(locale);
@@ -75,6 +78,12 @@ public class LocaleWordRefiner {
             stringBuilder.deleteCharAt(length - 1);
         }
         return stringBuilder.toString();
+    }
+
+    private static boolean isURI(String line) {
+        return line.contains("://");
+
+
     }
 
 

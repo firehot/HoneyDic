@@ -109,7 +109,15 @@ public class PhoneticPlayer {
     }
 
 
-    public void stop() {
+    public void stoP() {
+        mTextToSpeechObserable
+        .onErrorResumeNext(e -> Observable.empty())
+        .subscribe(tts -> {
+            tts.stop();
+        });
+    }
+
+    public void close() {
         mTextToSpeechObserable
         .onErrorResumeNext(e -> Observable.empty())
         .subscribe(tts -> {

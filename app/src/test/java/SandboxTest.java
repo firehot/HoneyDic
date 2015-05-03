@@ -36,10 +36,7 @@ public class SandboxTest {
     public void testAvailable() throws IOException, InterruptedException {
 
 
-         System.out.println(Character.UnicodeBlock.of('A') == Character.UnicodeBlock.BASIC_LATIN);
-        System.out.println(Character.UnicodeBlock.of('Z') == Character.UnicodeBlock.BASIC_LATIN);
-        System.out.println(Character.UnicodeBlock.of('ㅎ') == Character.UnicodeBlock.HANGUL_SYLLABLES);
-
+            System.out.println("http://dsfsdafasd.asdfsadf.asdfasdf".contains("://"));
 
 
 

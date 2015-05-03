@@ -5,12 +5,18 @@
         <!-- Customize your theme here. -->
     </style>
 
+
     <style name="Animation"/>
+    <style name="Background">Background</style>
 
     <style name="Animation.DicToast">
         <item name="android:windowEnterAnimation">@anim/dictoast_enter</item>
-        <!--<item name="android:windowExitAnimation">@anim/dictoast_enter</item>-->
     </style>
+    
+    <style name="Background.WordcardBackground">
+        <item name="android:background">@drawable/bg_wordcard_rc3</item>
+    </style>
+
 
 
 

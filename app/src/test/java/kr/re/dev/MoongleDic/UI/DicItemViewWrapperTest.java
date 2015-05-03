@@ -3,11 +3,13 @@ package kr.re.dev.MoongleDic.UI;
 import android.content.Context;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 
 import com.google.common.collect.Lists;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
@@ -18,10 +20,16 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import kr.re.dev.MoongleDic.DicData.Database.DicInfoManager;
+import kr.re.dev.MoongleDic.DicData.WordCard;
+import kr.re.dev.MoongleDic.R;
+
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 
 /**
@@ -31,6 +39,19 @@ import static org.junit.Assert.assertThat;
 @RunWith(RobolectricTestRunner.class)
 @Config(emulateSdk = 18, manifest = "./app/src/main/AndroidManifest.xml")
 public class DicItemViewWrapperTest {
+
+    @Test
+    public void testLineBreak() {
+        Context context = Robolectric.getShadowApplication().getApplicationContext();
+        DicItemViewWrapper item = DicItemViewWrapper.obtain(context);
+        WordCard wordCard = mock(WordCard.class);
+        when(wordCard.getDescriptionCards()).thenReturn(Lists.newArrayList());
+        when(wordCard.word()).thenReturn("하하하하히히히");
+        when(wordCard.phonetic()).thenReturn("[ 발음기호 || 발음기호 ]");
+        item.setWordCard(wordCard);
+        assertTrue(((LinearLayout) item.getView()).indexOfChild(item.findViewById(R.id.textViewPhonetic)) >= 0);
+    }
+
 
     @Test
     public void testObtain() {
@@ -84,39 +105,39 @@ public class DicItemViewWrapperTest {
     public void testMeanViewWrapperObtain() {
         Context context = Robolectric.getShadowApplication().getApplicationContext();
         FrameLayout layout = new FrameLayout(context);
-        List<DicItemViewWrapper.MeanViewWrapper> items = Lists.newArrayList(
-                DicItemViewWrapper.MeanViewWrapper.obtain(context,layout),
-                DicItemViewWrapper.MeanViewWrapper.obtain(context,layout),
-                DicItemViewWrapper.MeanViewWrapper.obtain(context,layout),
-                DicItemViewWrapper.MeanViewWrapper.obtain(context,layout),
-                DicItemViewWrapper.MeanViewWrapper.obtain(context,layout),
-                DicItemViewWrapper.MeanViewWrapper.obtain(context,layout),
-                DicItemViewWrapper.MeanViewWrapper.obtain(context,layout),
-                DicItemViewWrapper.MeanViewWrapper.obtain(context,layout),
-                DicItemViewWrapper.MeanViewWrapper.obtain(context,layout),
-                DicItemViewWrapper.MeanViewWrapper.obtain(context,layout));
-        for(DicItemViewWrapper.MeanViewWrapper item : items) {
+        List<MeanItemWrapper> items = Lists.newArrayList(
+                MeanItemWrapper.obtain(context, layout),
+                MeanItemWrapper.obtain(context, layout),
+                MeanItemWrapper.obtain(context, layout),
+                MeanItemWrapper.obtain(context, layout),
+                MeanItemWrapper.obtain(context, layout),
+                MeanItemWrapper.obtain(context, layout),
+                MeanItemWrapper.obtain(context, layout),
+                MeanItemWrapper.obtain(context, layout),
+                MeanItemWrapper.obtain(context, layout),
+                MeanItemWrapper.obtain(context, layout));
+        for(MeanItemWrapper item : items) {
             assertTrue(!item.isRecycled());
         }
-        for(DicItemViewWrapper.MeanViewWrapper item : items) {
+        for(MeanItemWrapper item : items) {
             assertTrue(!item.isRecycled());
             item.recycle();
         }
-        List<DicItemViewWrapper.MeanViewWrapper> newItems = Lists.newArrayList(
-                DicItemViewWrapper.MeanViewWrapper.obtain(context, layout),
-                DicItemViewWrapper.MeanViewWrapper.obtain(context,layout),
-                DicItemViewWrapper.MeanViewWrapper.obtain(context,layout),
-                DicItemViewWrapper.MeanViewWrapper.obtain(context,layout),
-                DicItemViewWrapper.MeanViewWrapper.obtain(context,layout),
-                DicItemViewWrapper.MeanViewWrapper.obtain(context,layout),
-                DicItemViewWrapper.MeanViewWrapper.obtain(context,layout),
-                DicItemViewWrapper.MeanViewWrapper.obtain(context,layout),
-                DicItemViewWrapper.MeanViewWrapper.obtain(context,layout),
-                DicItemViewWrapper.MeanViewWrapper.obtain(context,layout));
+        List<MeanItemWrapper> newItems = Lists.newArrayList(
+                MeanItemWrapper.obtain(context, layout),
+                MeanItemWrapper.obtain(context, layout),
+                MeanItemWrapper.obtain(context, layout),
+                MeanItemWrapper.obtain(context, layout),
+                MeanItemWrapper.obtain(context, layout),
+                MeanItemWrapper.obtain(context, layout),
+                MeanItemWrapper.obtain(context, layout),
+                MeanItemWrapper.obtain(context, layout),
+                MeanItemWrapper.obtain(context, layout),
+                MeanItemWrapper.obtain(context, layout));
 
         for(int i = 0, n = newItems.size(); i < n; ++i) {
-            DicItemViewWrapper.MeanViewWrapper itemsNew =  newItems.get(n - i - 1);
-            DicItemViewWrapper.MeanViewWrapper itemsOld =  items.get(i);
+            MeanItemWrapper itemsNew =  newItems.get(n - i - 1);
+            MeanItemWrapper itemsOld =  items.get(i);
             assertTrue(!itemsNew.isRecycled());
             assertTrue(!itemsOld.isRecycled());
             assertEquals(itemsNew, itemsOld);
@@ -131,15 +152,15 @@ public class DicItemViewWrapperTest {
         DicItemViewWrapper.recycleAll();
 
         FrameLayout layout =  new FrameLayout(context);
-        DicItemViewWrapper.MeanViewWrapper meanViewWrapper =  DicItemViewWrapper.MeanViewWrapper.obtain(context, layout);
-        assertTrue(verifyView(meanViewWrapper, "mParent") > 0);
-        List<DicItemViewWrapper.MeanViewWrapper> list = Arrays.asList(DicItemViewWrapper.MeanViewWrapper.obtain(context, layout),
-        DicItemViewWrapper.MeanViewWrapper.obtain(context, layout),
-        DicItemViewWrapper.MeanViewWrapper.obtain(context, layout),
-        DicItemViewWrapper.MeanViewWrapper.obtain(context, layout));
+        MeanItemWrapper meanItemWrapper =  MeanItemWrapper.obtain(context, layout);
+        assertTrue(verifyView(meanItemWrapper, "mParent") > 0);
+        List<MeanItemWrapper> list = Arrays.asList(MeanItemWrapper.obtain(context, layout),
+        MeanItemWrapper.obtain(context, layout),
+        MeanItemWrapper.obtain(context, layout),
+        MeanItemWrapper.obtain(context, layout));
         assertEquals(layout.getChildCount(), 5);
-        meanViewWrapper.recycle();
-        for(DicItemViewWrapper.MeanViewWrapper mv : list) {
+        meanItemWrapper.recycle();
+        for(MeanItemWrapper mv : list) {
             mv.recycle();
         }
         assertEquals(layout.getChildCount(), 0);
@@ -160,8 +181,8 @@ public class DicItemViewWrapperTest {
                 Object view =  field.get(obj);
                 if(!Arrays.asList(noVerifyFieldName).contains(field.getName())) {
                     if (view == null) throw new NullPointerException(field.getName() + " is Null");
+                    else resule++;
                 }
-                else resule++;
             }
         }
         return resule;

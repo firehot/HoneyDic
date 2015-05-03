@@ -6,6 +6,7 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.PixelFormat;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
@@ -57,9 +58,11 @@ public class DicToast extends ViewWrapper implements View.OnTouchListener{
     private float mAlpha = 1.0f;
     private int mX = 0;
     private int mViewX = 0;
+    private int mViewY = 0;
     private float mStartTouchX = 0;
     private float mT = 0;
     private PublishSubject<HideDirection> mHideEventSubject = PublishSubject.create();
+    private PublishSubject<String> mWordTouchSubject = PublishSubject.create();
 
     private void DicToast() {}
 
@@ -175,6 +178,7 @@ public class DicToast extends ViewWrapper implements View.OnTouchListener{
             }
             mAlpha = 1.0f - mT;
             mViewX += moved;
+
             mViewX = (mViewX < mLeftMoveEndX)? (int) mLeftMoveEndX :mViewX;
             mViewX= (mViewX > mRightMoveEndX)? (int) mRightMoveEndX :mViewX;
             setViewX(mViewX);
@@ -186,6 +190,7 @@ public class DicToast extends ViewWrapper implements View.OnTouchListener{
             int objX = mX;
             int duration = DEFAULT_ANIMATION_DURATIONS;
             float objAlpha = 1.0f;
+            String touchedWord = DicItemViewWrapper.flushThouchedWord();
             Interpolator interpolator = AnimationUtils.loadInterpolator(getContext(), android.R.interpolator.accelerate_quad);
 
             if(mVelocityTracker != null) {
@@ -198,11 +203,14 @@ public class DicToast extends ViewWrapper implements View.OnTouchListener{
             }
             if(event.getAction() == MotionEvent.ACTION_UP) {
                 // 단어 카드가 일정 위치를 벗어났거나 스와이프가 이루어졌을 때.
+                Log.i("testio", "velocity : " + velocity + "   " + "T : " + mT);
                 if(mT > THRESHOLD_HIDE || Math.abs(velocity) > THRESHOLD_VELOCITY) {
                     objX = (int)mMoveEndX;
                     objAlpha = 0.0f;
                     interpolator = AnimationUtils.loadInterpolator(getContext(), android.R.interpolator.decelerate_quad);
                     mStatus = Status.OnAnimationEnd;
+                } else {
+                    if(!touchedWord.isEmpty()) mWordTouchSubject.onNext(touchedWord);
                 }
             }
             startHideAnimation(objX, objAlpha, duration, interpolator);
@@ -220,7 +228,9 @@ public class DicToast extends ViewWrapper implements View.OnTouchListener{
         mWindowManager.getDefaultDisplay().getMetrics(displaymetrics);
         mX = layoutParams.x;
         mViewX = mX;
+        mViewY = layoutParams.y;
         mAlpha = layoutParams.alpha;
+        mT = 0;
         mMoveEndX = 0;
         mLeftMoveEndX = mX - (width * THRESHOLD_MOVE_END);
         mRightMoveEndX = mX + (width * THRESHOLD_MOVE_END);
@@ -276,6 +286,7 @@ public class DicToast extends ViewWrapper implements View.OnTouchListener{
         View view = getView();
         WindowManager.LayoutParams layoutParams = ((WindowManager.LayoutParams)view.getLayoutParams());
         layoutParams.y = y;
+        mViewY = y;
         if(mIsAttached)
             mWindowManager.updateViewLayout(view, layoutParams);
     }
@@ -310,7 +321,6 @@ public class DicToast extends ViewWrapper implements View.OnTouchListener{
             @Override
             public void onAnimationEnd(Animator animation) {
                 if (isCancled) return;
-
                 if (mStatus == Status.OnAnimationEnd) {
                     onHideEvent();
                     removeView();
@@ -355,23 +365,11 @@ public class DicToast extends ViewWrapper implements View.OnTouchListener{
 
 
     public class WordCardListAdapter extends ArrayAdapter<WordCard> {
-        private PublishSubject<String> mWordTouchSubject = PublishSubject.create();
 
         public WordCardListAdapter(Context context) {
             super(context, R.layout.item_wordcard);
         }
 
-        @Override
-        public void notifyDataSetChanged() {
-            DicItemViewWrapper.recycleAll();
-            super.notifyDataSetChanged();
-        }
-
-        @Override
-        public void notifyDataSetInvalidated() {
-            DicItemViewWrapper.recycleAll();
-            super.notifyDataSetInvalidated();
-        }
         public Observable<String> wordTouchEvent() {
            return mWordTouchSubject.asObservable();
         }
@@ -385,7 +383,6 @@ public class DicToast extends ViewWrapper implements View.OnTouchListener{
                 dicItem.setWordCard(wordCard);
             }
             convertView = dicItem.getView();
-            dicItem.setWordSubject(mWordTouchSubject);
             return convertView;
         }
     }
