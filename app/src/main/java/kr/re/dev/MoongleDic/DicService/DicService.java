@@ -30,6 +30,8 @@ public class DicService extends Service {
     private PhoneticPlayer mPhoneticPlayer;
     private DicSearcher mDicSearcher;
     private DicInfoManager.DicInfo mDicInfo;
+    private String mCurrentKeyword = "";
+
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -75,9 +77,13 @@ public class DicService extends Service {
             Object textItem =  data.getItemAt(0).getText();
             if(textItem != null) {
                 String text = textItem.toString();
-                String words = LocaleWordRefiner.refine(text, mDicInfo.getFromLanguage());
-                showWord(words);
-
+                String keyWord = LocaleWordRefiner.refine(text, mDicInfo.getFromLanguage());
+                // 다른 애플리케이션의 클립보드 조작(?)으로
+                // 이미 출력된 단어 카드의 중복 출력을 방지한다.
+                if(!mCurrentKeyword.equals(keyWord)) {
+                    mCurrentKeyword = keyWord;
+                    showWord(keyWord);
+                }
             }
         }
     };
@@ -87,15 +93,18 @@ public class DicService extends Service {
                 .doOnNext(mPhoneticPlayer::play)
                 .flatMap(mDicSearcher::search)
                 .zipWith(Lists.newArrayList(word), (wordCards, comWord) -> {
-                    if (wordCards.isEmpty() && !comWord.isEmpty()) wordCards.add(WordCard.newInstance(comWord));
+                    if (wordCards.isEmpty() && !comWord.isEmpty())
+                        wordCards.add(WordCard.newInstance(comWord));
                     return wordCards;
                 }).
                 flatMap(mDicToast::show)
-                .subscribe(hide -> {
-                    Log.i("testio", (hide == DicToast.HideDirection.Left)?"왼쪽":"오른쪽");
-                    Toast.makeText(getApplicationContext(), (hide == DicToast.HideDirection.Left)?"왼쪽":"오른쪽", Toast.LENGTH_SHORT).show();
-                });
+                .subscribe(this::endWordCard);
+    }
 
+    private void endWordCard(DicToast.HideDirection hide) {
+        mCurrentKeyword = "";
+        Log.i("testio", (hide == DicToast.HideDirection.Left)?"왼쪽":"오른쪽");
+        Toast.makeText(getApplicationContext(), (hide == DicToast.HideDirection.Left)?"왼쪽":"오른쪽", Toast.LENGTH_SHORT).show();
     }
 
 }

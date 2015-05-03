@@ -38,6 +38,7 @@ public class DicToast extends ViewWrapper implements View.OnTouchListener{
     private final static float THRESHOLD_HIDE = 0.7f;
     private final static float THRESHOLD_VELOCITY = 2.0f;
     private final static int DEFAULT_ANIMATION_DURATIONS = 350;
+    private final static int SHOW_ANIMATION_DURATIONS = 450;
 
     private WindowManager.LayoutParams mWindowLayoutParams;
     private ListView    mListViewWordCard;
@@ -86,11 +87,14 @@ public class DicToast extends ViewWrapper implements View.OnTouchListener{
                         WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS ,
                 PixelFormat.TRANSLUCENT);
         windowLayoutParams.gravity = Gravity.TOP | Gravity.CENTER;
-        windowLayoutParams.windowAnimations = R.style.Animation_DicToast;
+        //windowLayoutParams.windowAnimations = R.style.Animation_DicToast;
         return windowLayoutParams;
     }
 
+
+
     public void setListViewWordCard(List<WordCard> wordCardList) {
+        DicItemViewWrapper.recycleAll();
         mListAdapter.clear();
         // TODO : 리스트가 길어질 경우 스크롤을 하기 위한 터치를 어색하지 않게 처리해야한다.
         /*Collections.addAll(wordCardList, WordCard.newInstance("test"), WordCard.newInstance("test"), WordCard.newInstance("test"), WordCard.newInstance("test"), WordCard.newInstance("test"),
@@ -103,7 +107,6 @@ public class DicToast extends ViewWrapper implements View.OnTouchListener{
         if(wordCardList.isEmpty()) {
             return makeEmptyHiddenEvent();
         }
-
         setListViewWordCard(wordCardList);
         cancelAnimation();
         addView();
@@ -140,19 +143,6 @@ public class DicToast extends ViewWrapper implements View.OnTouchListener{
         return mListAdapter.wordTouchEvent();
     }
 
-
-
-
-
-    private int getStatusBarHeight() {
-        int result = 0;
-        Context context = getContext();
-        int resourceId = context.getResources().getIdentifier("status_bar_height", "dimen", "android");
-        if (resourceId > 0) {
-            result = context.getResources().getDimensionPixelSize(resourceId);
-        }
-        return result;
-    }
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
@@ -215,7 +205,7 @@ public class DicToast extends ViewWrapper implements View.OnTouchListener{
                     mStatus = Status.OnAnimationEnd;
                 }
             }
-            startAnimation(objX,objAlpha,duration,interpolator);
+            startHideAnimation(objX, objAlpha, duration, interpolator);
 
         }
         return false;
@@ -246,8 +236,12 @@ public class DicToast extends ViewWrapper implements View.OnTouchListener{
         if(!mIsAttached) {
             mHideEventSubject = PublishSubject.create();
             mWindowLayoutParams =  makeLayoutParams();
+            mWindowLayoutParams.alpha = 0.0f;
             mWindowManager.addView(getView(), mWindowLayoutParams);
+            final int START_SHOW_ANIMATION_DELAY_MS = 10;
+            getView().postDelayed(this::startShowAnimation, START_SHOW_ANIMATION_DELAY_MS);
             mIsAttached = true;
+
         }
         mStatus = Status.Show;
     }
@@ -278,6 +272,14 @@ public class DicToast extends ViewWrapper implements View.OnTouchListener{
             mWindowManager.updateViewLayout(view, layoutParams);
     }
 
+    private void setViewY(int y) {
+        View view = getView();
+        WindowManager.LayoutParams layoutParams = ((WindowManager.LayoutParams)view.getLayoutParams());
+        layoutParams.y = y;
+        if(mIsAttached)
+            mWindowManager.updateViewLayout(view, layoutParams);
+    }
+
     private void setAlpha(float alpha) {
         alpha = (alpha > 1.0f)?1.0f:alpha;
         alpha = (alpha < 0.0f)?0.0f:alpha;
@@ -289,7 +291,7 @@ public class DicToast extends ViewWrapper implements View.OnTouchListener{
             mWindowManager.updateViewLayout(view, layoutParams);
     }
 
-    private void startAnimation(int objX, float objAlpha, int duration, Interpolator interpolator) {
+    private void startHideAnimation(int objX, float objAlpha, int duration, Interpolator interpolator) {
         ValueAnimator moveAnimator =  ValueAnimator.ofInt(mViewX,objX);
         ValueAnimator alphaAnimator =  ValueAnimator.ofFloat(mAlpha, objAlpha);
         AnimatorSet animatorSet = new AnimatorSet();
@@ -328,6 +330,24 @@ public class DicToast extends ViewWrapper implements View.OnTouchListener{
             public void onAnimationRepeat(Animator animation) {
             }
         });
+        animatorSet.start();
+    }
+
+
+
+    private void startShowAnimation() {
+        int startY =  (getView().getWidth() / 2) * -1;
+        int y =  ((WindowManager.LayoutParams)getView().getLayoutParams()).y;
+        ValueAnimator moveAnimator =  ValueAnimator.ofInt(startY,y);
+        ValueAnimator alphaAnimator =  ValueAnimator.ofFloat(0,0.1f,0.3f,0.4f,1.0f);
+        AnimatorSet animatorSet = new AnimatorSet();
+        mCurrentAnimationSet = animatorSet;
+        animatorSet.setDuration(SHOW_ANIMATION_DURATIONS);
+        Interpolator interpolator = AnimationUtils.loadInterpolator(getContext(), android.R.interpolator.decelerate_quad);
+        animatorSet.setInterpolator(interpolator);
+        animatorSet.playTogether(moveAnimator, alphaAnimator);
+        moveAnimator.addUpdateListener(animation -> setViewY((Integer) animation.getAnimatedValue()));
+        alphaAnimator.addUpdateListener(animation -> setAlpha((Float) animation.getAnimatedValue()));
         animatorSet.start();
     }
 
