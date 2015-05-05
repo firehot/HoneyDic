@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="KeepWordCardTimeSelectSpinnerItem">
+        <item>계속 유지&#160;&#160;</item>
+        <item>2초간 유지</item>
+        <item>4초간 유지</item>
+        <item>6초간 유지</item>
+        <item>8초간 유지</item>
+        <item>10초간 유지</item>
+        <item>20초간 유지</item>
+    </string-array>
+</resources>

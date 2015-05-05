@@ -1,5 +1,6 @@
 <resources>
-    <string name="app_name">MoogleDic</string>
+    <string name="app_name">허니 딕</string>
+    <string name="app_name.sub">클립보드 단어 사전</string>
 
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
@@ -8,5 +9,23 @@
     <string name="sample_word_class">n.</string>
     <string name="sample_word_mean"> 단어, 낱말; (노래의) 가사; 소식, 소문, (떠도는) 말, 정보; 이야기, 말, (말・글의) 마디</string>
     <string name="Dictionary_English_Korean_Name">Vicon English-Korean dictionary</string>
+
+    <string name="Option">옵션</string>
+    <string name="Option.ClipboardDic">클립보드 사전</string>
+    <string name="Option.ClipboardDic.Use">항상 사용</string>
+    <string name="Option.ClipboardDic.Use.Description">클립 보드 사전을 사용할 수 있습니다.</string>
+    <string name="Option.ClipboardDic.NoneForceDestroy">강제 종료 방지</string>
+    <string name="Option.ClipboardDic.NoneForceDestroy.Description">상태바에 아이콘이 출력되며, 안드로이드 시스템에 의한 클립보드 사전의 강제 종료를 방지합니다.</string>
+    <string name="Option.ClipboardDic.KeepDicToastTime">단어 카드</string>
+    <string name="Option.ClipboardDic.KeepDicToastTime.Description">단어의 뜻을 보여주는 단어 카드는 설정된 시간만큼 화면에 출력되고 나서 자동으로 사라집니다.</string>
+    <string name="Option.General">일반</string>
+    <string name="Option.General.UseTTS">TTS 발음 기능</string>
+    <string name="Option.General.UseTTS.Description">안드로이드의 TTS 엔진을 통하여 합성된 단어 발음을 들려줍니다.</string>
+    <string name="Option.General.SoundEffect">효과음</string>
+    <string name="Option.General.SoundEffect.Description">효과음을 사용할 수 있습니다.</string>
+    
+
+
+
 
 </resources>

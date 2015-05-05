@@ -2,7 +2,7 @@
 
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
     </style>
 
@@ -26,4 +26,38 @@
 
 
 
+
+    <style name="TextStyle">TextStyle</style>
+    <style name="TextStyle.Option">
+        <item name="android:fontFamily">sans</item>
+    </style>
+
+    <style name="TextStyle.Option.Title">
+        <item name="android:textSize">22sp</item>
+        <item name="android:textColor">@color/HoneyDic_identity_900</item>
+    </style>
+
+    <style name="TextStyle.Option.Title.Spinner">
+        <item name="android:textSize">22sp</item>
+        <item name="android:textColor">@color/HoneyDic_identity_900</item>
+    </style>
+
+    <style name="TextStyle.Option.Description">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/HoneyDic_identity_700</item>
+    </style>
+
+    <style name="TextStyle.Option.Section">
+        <item name="android:textSize">15sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/HoneyDic_identity_700</item>
+    </style>
+
+
+
+
 </resources>
+
+
+
+
