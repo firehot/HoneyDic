@@ -16,42 +16,12 @@ import kr.re.dev.MoongleDic.R;
 * 뜻이 각 품사별로 여러개가 있을 수 있다.
 * 품사에 맞춰서 뷰를 여러번 생성하는 것은 속도 저하가 있을 수 있으므로 캐쉬할 수 있도록 한다.
 */
-public  class MeanItemWrapper extends ViewWrapper {
+public  class MeanItemWrapper extends ViewWrapper implements Comparable  {
 
-    private static MeanItemWrapper sRecycledEnd = null;
-    private static int sCount = 0;
-    private MeanItemWrapper mRecycledPrev;
-    private boolean mIsRecycled = false;
     private TextView mTextViewMeaning;
     private TextView mTextViewClass;
 
-
-    public static MeanItemWrapper obtain(Context context, ViewGroup parentView) {
-        MeanItemWrapper meanItemWrapper = null;
-        if(sRecycledEnd == null) {
-            meanItemWrapper =  new MeanItemWrapper(context);
-            Log.d("testio", "MeanViewWrapper is created, count : " + ++sCount);
-        }  else {
-            meanItemWrapper =  sRecycledEnd;
-            meanItemWrapper.mIsRecycled = false;
-            sRecycledEnd = sRecycledEnd.mRecycledPrev;
-            Log.d("testio", "MeanViewWrapper is obtained, count : " + ++sCount);
-        }
-        meanItemWrapper.removeFromParent();
-        parentView.addView(meanItemWrapper.getView());
-        return meanItemWrapper;
-    }
-
-    public void recycle() {
-        if(isRecycled()) return;
-        mRecycledPrev = sRecycledEnd;
-        sRecycledEnd = this;
-        removeFromParent();
-        mIsRecycled = true;
-        Log.d("testio", "MeanViewWrapper is recycled, count : " + --sCount);
-    }
-
-    private void removeFromParent() {
+    public void removeFromParent() {
         ViewGroup parent = ((ViewGroup) getView().getParent());
         if(parent != null) {
             parent.removeView(getView());
@@ -59,9 +29,6 @@ public  class MeanItemWrapper extends ViewWrapper {
     }
 
 
-    public boolean isRecycled() {
-        return mIsRecycled;
-    }
 
     public MeanItemWrapper setMeanOfWord(String mean) {
         mTextViewMeaning.setText(mean.replaceAll("^[\\s]{0,}", ""));
@@ -85,6 +52,19 @@ public  class MeanItemWrapper extends ViewWrapper {
     }
 
 
+
     @Override
     public void update() {}
+
+    @Override
+    public int compareTo(Object anotherObj) {
+        MeanItemWrapper another = (MeanItemWrapper)anotherObj;
+        if(getView().getParent() == null || !(getView().getParent() instanceof  ViewGroup)) return -1;
+        else if(another.getView().getParent() == null || !(another.getView().getParent() instanceof  ViewGroup)) return 1;
+        int anotherIndex =  ((ViewGroup)another.getView().getParent()).indexOfChild(another.getView());
+        int index = ((ViewGroup)getView().getParent()).indexOfChild(getView());
+        if(index > anotherIndex) return 1;
+        else if(index < anotherIndex) return -1;
+        return 0;
+    }
 }

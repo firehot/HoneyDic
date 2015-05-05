@@ -1,0 +1,14 @@
+<resources>
+
+
+
+    <style name="WordCard.ListView">
+        <item name="android:layout_width">400dp</item>
+        <item name="android:paddingBottom">16dp</item>
+        <item name="android:paddingTop">8dp</item>
+    </style>
+
+
+
+
+</resources>

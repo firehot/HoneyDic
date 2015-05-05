@@ -8,6 +8,7 @@ package kr.re.dev.MoongleDic.Commons;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 public abstract class ViewWrapper {
@@ -50,11 +51,33 @@ public abstract class ViewWrapper {
 	public View getView() {	
 		return view;
 	}
-
-
 	public View findViewById(int id) {
 		return view.findViewById(id);
 	}
+	public View addView(ViewWrapper viewWrapper) {
+		return addView(viewWrapper.getView());
+	}
+
+	public View addView(View child) {
+		if(!(view instanceof ViewGroup)) return null;
+		ViewGroup viewGroup = ((ViewGroup) view);
+		int index = viewGroup.indexOfChild(child);
+		if(index >= 0) {
+			return viewGroup.getChildAt(index);
+		}
+		viewGroup.addView(child);
+		return child;
+	}
+	public void removeView(ViewWrapper viewWrapper) {
+		removeView(viewWrapper.getView());
+	}
+	public void removeView(View child) {
+		if(!(view instanceof ViewGroup)) return;
+		ViewGroup viewGroup = ((ViewGroup) view);
+		if(viewGroup.indexOfChild(child) < 0) return;
+		viewGroup.removeView(child);
+	}
+
 
 	public abstract void update();
 }

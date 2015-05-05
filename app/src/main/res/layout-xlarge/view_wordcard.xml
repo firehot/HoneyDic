@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content" android:layout_height="wrap_content"
-    style="@style/Background.WordcardBackground">
+    style="@style/WordCard.Background">
 
     <ListView
-        android:layout_width="500dp"
+        style="@style/WordCard.ListView"
         android:layout_height="wrap_content"
         android:id="@+id/listViewWordCard"
-        android:choiceMode="singleChoice"
-        android:paddingBottom="16dp" />
+        android:choiceMode="singleChoice" />
 
 </FrameLayout>

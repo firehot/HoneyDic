@@ -43,7 +43,7 @@ public class DicItemViewWrapperTest {
     @Test
     public void testLineBreak() {
         Context context = Robolectric.getShadowApplication().getApplicationContext();
-        DicItemViewWrapper item = DicItemViewWrapper.obtain(context);
+        DicItemViewWrapper item = new DicItemViewWrapper(context);
         WordCard wordCard = mock(WordCard.class);
         when(wordCard.getDescriptionCards()).thenReturn(Lists.newArrayList());
         when(wordCard.word()).thenReturn("하하하하히히히");
@@ -53,119 +53,6 @@ public class DicItemViewWrapperTest {
     }
 
 
-    @Test
-    public void testObtain() {
-        Context context = Robolectric.getShadowApplication().getApplicationContext();
-        List<DicItemViewWrapper> items = Lists.newArrayList(
-                DicItemViewWrapper.obtain(context),
-                DicItemViewWrapper.obtain(context),
-                DicItemViewWrapper.obtain(context),
-                DicItemViewWrapper.obtain(context),
-                DicItemViewWrapper.obtain(context),
-                DicItemViewWrapper.obtain(context),
-                DicItemViewWrapper.obtain(context),
-                DicItemViewWrapper.obtain(context),
-                DicItemViewWrapper.obtain(context),
-                DicItemViewWrapper.obtain(context));
-        int count = 0;
-        for(DicItemViewWrapper item : items) {
-            assertThat(item.isRecycled(), is(false));
-        }
-        DicItemViewWrapper.recycleAll();
-        for(DicItemViewWrapper item : items) {
-            assertThat(item.isRecycled(), is(true));
-        }
-        LinkedList<DicItemViewWrapper> newItems = Lists.newLinkedList(Lists.newArrayList(
-                DicItemViewWrapper.obtain(context),
-                DicItemViewWrapper.obtain(context),
-                DicItemViewWrapper.obtain(context),
-                DicItemViewWrapper.obtain(context),
-                DicItemViewWrapper.obtain(context),
-                DicItemViewWrapper.obtain(context),
-                DicItemViewWrapper.obtain(context),
-                DicItemViewWrapper.obtain(context),
-                DicItemViewWrapper.obtain(context),
-                DicItemViewWrapper.obtain(context)));
-
-
-
-
-        for(int i = 0, n = newItems.size(); i < n; ++i) {
-            DicItemViewWrapper itemsNew =  newItems.get(i);
-            DicItemViewWrapper itemsOld =  items.get(i);
-            //newItems.remove(itemsOld);
-            assertThat(itemsNew.isRecycled(), is(false));
-            assertThat(itemsOld.isRecycled(), is(false));
-            assertEquals(itemsNew, itemsOld);
-        }
-
-    }
-
-    @Test
-    public void testMeanViewWrapperObtain() {
-        Context context = Robolectric.getShadowApplication().getApplicationContext();
-        FrameLayout layout = new FrameLayout(context);
-        List<MeanItemWrapper> items = Lists.newArrayList(
-                MeanItemWrapper.obtain(context, layout),
-                MeanItemWrapper.obtain(context, layout),
-                MeanItemWrapper.obtain(context, layout),
-                MeanItemWrapper.obtain(context, layout),
-                MeanItemWrapper.obtain(context, layout),
-                MeanItemWrapper.obtain(context, layout),
-                MeanItemWrapper.obtain(context, layout),
-                MeanItemWrapper.obtain(context, layout),
-                MeanItemWrapper.obtain(context, layout),
-                MeanItemWrapper.obtain(context, layout));
-        for(MeanItemWrapper item : items) {
-            assertTrue(!item.isRecycled());
-        }
-        for(MeanItemWrapper item : items) {
-            assertTrue(!item.isRecycled());
-            item.recycle();
-        }
-        List<MeanItemWrapper> newItems = Lists.newArrayList(
-                MeanItemWrapper.obtain(context, layout),
-                MeanItemWrapper.obtain(context, layout),
-                MeanItemWrapper.obtain(context, layout),
-                MeanItemWrapper.obtain(context, layout),
-                MeanItemWrapper.obtain(context, layout),
-                MeanItemWrapper.obtain(context, layout),
-                MeanItemWrapper.obtain(context, layout),
-                MeanItemWrapper.obtain(context, layout),
-                MeanItemWrapper.obtain(context, layout),
-                MeanItemWrapper.obtain(context, layout));
-
-        for(int i = 0, n = newItems.size(); i < n; ++i) {
-            MeanItemWrapper itemsNew =  newItems.get(n - i - 1);
-            MeanItemWrapper itemsOld =  items.get(i);
-            assertTrue(!itemsNew.isRecycled());
-            assertTrue(!itemsOld.isRecycled());
-            assertEquals(itemsNew, itemsOld);
-        }
-    }
-
-
-    @Test
-    public void testVerifyView() throws IllegalAccessException {
-        Context context = Robolectric.getShadowApplication().getApplicationContext();
-        DicItemViewWrapper dicItemViewWrapper = DicItemViewWrapper.obtain(context);
-        DicItemViewWrapper.recycleAll();
-
-        FrameLayout layout =  new FrameLayout(context);
-        MeanItemWrapper meanItemWrapper =  MeanItemWrapper.obtain(context, layout);
-        assertTrue(verifyView(meanItemWrapper, "mParent") > 0);
-        List<MeanItemWrapper> list = Arrays.asList(MeanItemWrapper.obtain(context, layout),
-        MeanItemWrapper.obtain(context, layout),
-        MeanItemWrapper.obtain(context, layout),
-        MeanItemWrapper.obtain(context, layout));
-        assertEquals(layout.getChildCount(), 5);
-        meanItemWrapper.recycle();
-        for(MeanItemWrapper mv : list) {
-            mv.recycle();
-        }
-        assertEquals(layout.getChildCount(), 0);
-
-    }
 
     public int verifyView(Object obj, String... noVerifyFieldName) throws IllegalAccessException {
         Class<?> clz = obj.getClass();

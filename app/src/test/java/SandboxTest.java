@@ -1,10 +1,16 @@
 
+import com.google.common.collect.Lists;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+
 import retrofit.client.Response;
 import retrofit.http.GET;
 import retrofit.http.Headers;
@@ -29,16 +35,27 @@ public class SandboxTest {
         Response getImageFile(@Path("addr") String id);
     }
 
+    public  class  foo implements Comparable {
+        int i = 0;
+
+        foo(int s) {
+            i = s;
+        }
+        @Override
+        public int compareTo(Object another) {
+            foo o = (foo) another;
+
+            if(o.i < i) return 1;
+            else if(o.i > i) return -1;
+             return 0;
+        }
+    }
 
 
 
     @Test
     public void testAvailable() throws IOException, InterruptedException {
-
-
-            System.out.println("http://dsfsdafasd.asdfsadf.asdfasdf".contains("://"));
-
-
+        System.out.println("2.1".matches("^(2[.]).*"));
 
 
 //        CountDownLatch latch = new CountDownLatch(1);

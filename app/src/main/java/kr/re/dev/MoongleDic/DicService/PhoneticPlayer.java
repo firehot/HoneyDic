@@ -63,7 +63,7 @@ public class PhoneticPlayer {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        Log.i("testio", "Created TTS Engine : " + ttsRef.get().toString() +  "/" + Thread.currentThread().getId());
+       // Log.i("testio", "Created TTS Engine : " + ttsRef.get().toString() +  "/" + Thread.currentThread().getId());
         sub.onNext(ttsRef.get());
         sub.onCompleted();
     }
@@ -80,7 +80,7 @@ public class PhoneticPlayer {
 
 
     public void play(String word) {
-        Log.i("testio", "call play TTS : " + word);
+        //Log.i("testio", "call play TTS : " + word);
         mTextToSpeechObserable
         .onErrorResumeNext(e -> Observable.empty())
         .subscribe(tts -> playTTS(tts, word));
@@ -91,7 +91,7 @@ public class PhoneticPlayer {
         if(tts == null) {
             return false;
         }
-        Log.i("testio", "play tts : " + word);
+        //Log.i("testio", "play tts : " + word);
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
             tts.speak(word, TextToSpeech.QUEUE_FLUSH, null, mPackageName);
         else
@@ -113,6 +113,7 @@ public class PhoneticPlayer {
         mTextToSpeechObserable
         .onErrorResumeNext(e -> Observable.empty())
         .subscribe(tts -> {
+            //Log.i("testio", "Stop TTS");
             tts.stop();
         });
     }
@@ -121,6 +122,7 @@ public class PhoneticPlayer {
         mTextToSpeechObserable
         .onErrorResumeNext(e -> Observable.empty())
         .subscribe(tts -> {
+            //Log.i("testio", "Shutdown TTS");
             tts.stop();
             tts.shutdown();
             mIsTTSShoutdown.set(true);
