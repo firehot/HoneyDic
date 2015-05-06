@@ -27,6 +27,7 @@ import android.widget.ListView;
 import com.google.common.collect.Lists;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import kr.re.dev.MoongleDic.Commons.ViewWrapper;
 import kr.re.dev.MoongleDic.DicData.WordCard;
@@ -505,6 +506,7 @@ public class WordCardToast extends ViewWrapper implements View.OnTouchListener{
         int startY =  (getView().getWidth() / 2) * -1;
         int y =  ((WindowManager.LayoutParams)getView().getLayoutParams()).y;
         initThresholdPoint();
+        AtomicInteger isChangedFit = new AtomicInteger(1);
         ValueAnimator moveAnimator =  ValueAnimator.ofInt(startY,y);
         ValueAnimator alphaAnimator =  ValueAnimator.ofFloat(0, 0.1f, 0.3f, 0.4f, 1.0f);
         AnimatorSet animatorSet = new AnimatorSet();
@@ -512,14 +514,23 @@ public class WordCardToast extends ViewWrapper implements View.OnTouchListener{
         animatorSet.setDuration(SHOW_ANIMATION_DURATIONS);
         Interpolator interpolator = AnimationUtils.loadInterpolator(getContext(), android.R.interpolator.decelerate_quad);
         animatorSet.setInterpolator(interpolator);
+        if(isOverLollipop()) {
+
+        }
+
         animatorSet.playTogether(moveAnimator, alphaAnimator);
         moveAnimator.addUpdateListener(animation -> {
             setViewY((Integer) animation.getAnimatedValue());
-            setShadowViewXFrom(0);
-            if (fitShadowViewSize() == 1) cacheToShadow();
+            if(isOverLollipop()) {
+                setShadowViewXFrom(0);
+                if(isChangedFit.get() == 1)
+                    isChangedFit.set(fitShadowViewSize());
+            }
+            //if (fitShadowViewSize() == 1) cacheToShadow();
         });
         alphaAnimator.addUpdateListener(animation -> setAlpha((Float) animation.getAnimatedValue()));
-        if(fitShadowViewSize() == 1) cacheToShadow();
+        fitShadowViewSize();
+        //if(fitShadowViewSize() == 1) cacheToShadow();
         fitShadowViewPoint();
         setShadowViewAlpha(0.0f);
         animatorSet.addListener(new Animator.AnimatorListener() {
@@ -527,7 +538,7 @@ public class WordCardToast extends ViewWrapper implements View.OnTouchListener{
             public void onAnimationStart(Animator animation) {}
             @Override
             public void onAnimationEnd(Animator animation) {
-                uncacheFromShadow();
+                //getView().post(WordCardToast.this::uncacheFromShadow);
             }
             @Override
             public void onAnimationCancel(Animator animation) {}

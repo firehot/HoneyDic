@@ -1,38 +1,19 @@
 package kr.re.dev.MoongleDic;
 
 
-import android.content.Context;
-import android.content.res.ColorStateList;
-import android.graphics.Color;
 import android.os.Build;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.ArrayAdapter;
-import android.widget.SpinnerAdapter;
 
-import com.rey.material.drawable.CheckBoxDrawable;
-import com.rey.material.util.ThemeUtil;
-import com.rey.material.widget.Button;
-import com.rey.material.widget.CheckBox;
-import com.rey.material.widget.Spinner;
-
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
-
-import kr.re.dev.MoongleDic.DicService.PhoneticPlayer;
-import kr.re.dev.MoongleDic.UI.DicItemViewWrapper;
 import kr.re.dev.MoongleDic.UI.SettingFragment;
 
 public class MainActivity extends FragmentActivity {
 
-    PhoneticPlayer mPhoneticPlayer;
-    DicItemViewWrapper item;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

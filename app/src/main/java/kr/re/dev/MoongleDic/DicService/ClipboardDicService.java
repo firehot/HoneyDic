@@ -5,6 +5,7 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Debug;
 import android.os.IBinder;
 import android.util.Log;
@@ -31,12 +32,13 @@ public class ClipboardDicService extends Service {
     private DicSearcher mDicSearcher;
     private DicInfoManager.DicInfo mDicInfo;
     private String mCurrentKeyword = "";
+    private ChangedSettingsReceiver mChangedSettingsReceiver;
     private boolean misArt;
-
 
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.i("testio", "Start ClipboardDicService" );
         init();
         return START_STICKY;
     }
@@ -50,11 +52,11 @@ public class ClipboardDicService extends Service {
     public void onTrimMemory(int level) {
         super.onTrimMemory(level);
         HashMap<Integer,String> map = Maps.newHashMap();
-        map.put(15,"TRIM_MEMORY_RUNNING_CRITICAL (Service)" );
-        map.put(10,"TRIM_MEMORY_RUNNING_LOW  (Service)" );
-        map.put(5,"TRIM_MEMORY_RUNNING_MODERATE  (Service)" );
-        map.put(20,"TRIM_MEMORY_UI_HIDDEN  (Service)" );
-        Toast.makeText(getApplicationContext(), map.get(level), Toast.LENGTH_SHORT).show();
+//        map.put(15,"TRIM_MEMORY_RUNNING_CRITICAL (Service)" );
+//        map.put(10,"TRIM_MEMORY_RUNNING_LOW  (Service)" );
+//        map.put(5,"TRIM_MEMORY_RUNNING_MODERATE  (Service)" );
+//        map.put(20,"TRIM_MEMORY_UI_HIDDEN  (Service)" );
+//        Toast.makeText(getApplicationContext(), map.get(level), Toast.LENGTH_SHORT).show();
     }
     @Override
     public void onCreate() {
@@ -69,7 +71,12 @@ public class ClipboardDicService extends Service {
         mPhoneticPlayer = PhoneticPlayer.newInstance(context,mDicInfo.getFromLanguage());
         mClipboardManager = (ClipboardManager)context.getSystemService(Context.CLIPBOARD_SERVICE);
         mClipboardManager.addPrimaryClipChangedListener(mOnPrimaryClipChangedListener);
+        mChangedSettingsReceiver = new ChangedSettingsReceiver();
+        IntentFilter intentFilter = new IntentFilter(ChangedSettingsReceiver.ACTION_SETTING);
+        mChangedSettingsReceiver.settingChangedEvent().subscribe(this::setSetting);
+        registerReceiver(mChangedSettingsReceiver, intentFilter);
         misArt =  System.getProperty("java.vm.version").matches("^(2[.]).*");
+        setSetting(Settings.getSettings(context));
     }
 
 
@@ -77,16 +84,15 @@ public class ClipboardDicService extends Service {
     public void onDestroy() {
         mPhoneticPlayer.close();
         mDicSearcher.close();
+        unregisterReceiver(mChangedSettingsReceiver);
         mClipboardManager.removePrimaryClipChangedListener(mOnPrimaryClipChangedListener);
+        Log.i("testio", "destory ClipboardDicService");
         super.onDestroy();
     }
 
 
 
-    private ClipboardManager.OnPrimaryClipChangedListener mOnPrimaryClipChangedListener;
-
-    {
-        mOnPrimaryClipChangedListener = new ClipboardManager.OnPrimaryClipChangedListener() {
+    private ClipboardManager.OnPrimaryClipChangedListener mOnPrimaryClipChangedListener = new ClipboardManager.OnPrimaryClipChangedListener() {
             @Override
             public void onPrimaryClipChanged() {
                 String text = getTextOnClipboard();
@@ -111,7 +117,7 @@ public class ClipboardDicService extends Service {
             }
 
         };
-    }
+
 
     private void showWordToast(String word) {
         WordCardToast wordCardToast = WordCardToast.newInstance(getApplicationContext());
@@ -132,6 +138,7 @@ public class ClipboardDicService extends Service {
 
     private void playTTS(String word) {
         mPhoneticPlayer.play(word);
+
     }
 
 
@@ -139,7 +146,7 @@ public class ClipboardDicService extends Service {
     private void endWordCard(WordCardToast.HideDirection hide) {
         mCurrentKeyword = "";
         Toast.makeText(getApplicationContext(), (hide == WordCardToast.HideDirection.Left)?"왼쪽":"오른쪽", Toast.LENGTH_SHORT).show();
-        mPhoneticPlayer.stoP();
+        mPhoneticPlayer.stop();
         Log.i("testio", (Debug.getNativeHeapAllocatedSize() / 1024.0f / 1024.0f) + "Mb");
          mWordCardToast = null;
         // 이러면 안 되는데... ㅡ , ㅡa
@@ -149,7 +156,16 @@ public class ClipboardDicService extends Service {
         //}
     }
 
+    private void setSetting(Settings setting) {
+        mPhoneticPlayer.useTTS(setting.isUseTTS());
+    }
 
 
+    @Override
+    protected void finalize() throws Throwable {
+        mPhoneticPlayer.close();
+        mDicSearcher.close();
+        super.finalize();
 
+    }
 }

@@ -31,10 +31,14 @@
             android:exported="true" >
         </service>
 
+
         <receiver
             android:name=".DicService.ChangedSettingsReceiver"
             android:enabled="true"
             android:exported="true" >
+            <intent-filter>
+                <action android:name="kr.re.dev.MoongleDic.Settings" />
+            </intent-filter>
         </receiver>
     </application>
 

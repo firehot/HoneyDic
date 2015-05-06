@@ -5,16 +5,21 @@ import android.os.Build;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 
+import com.google.common.base.Strings;
+
+import java.lang.ref.WeakReference;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import kr.re.dev.MoongleDic.SingleSchedulers;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 /**
  * 발음을 재생할 때 사용,
@@ -23,110 +28,168 @@ import rx.android.schedulers.AndroidSchedulers;
  */
 public class PhoneticPlayer {
 
-    private AtomicBoolean mPossibleTTS = new AtomicBoolean(false);
-    private AtomicBoolean mIsTTSShoutdown = new AtomicBoolean(false);
-    private String mPackageName;
-    private Locale mLocale;
 
-    private  Observable<TextToSpeech> mTextToSpeechObserable;
+    private AtomicBoolean mIsUseTTS = new AtomicBoolean(true);
+    private Context mContext;
+    private Locale mLocale;
+    private TTSManager mTTSManager;
 
 
     public static PhoneticPlayer newInstance(Context context, Locale locale) {
-        return new PhoneticPlayer(context, locale);
+        PhoneticPlayer phoneticPlayer =  new PhoneticPlayer(context, locale);
+        phoneticPlayer.mContext = context;
+        phoneticPlayer.mLocale = locale;
+        return phoneticPlayer;
     }
 
+    private PhoneticPlayer() {}
 
     private PhoneticPlayer(Context context, Locale locale) {
-
-        mPackageName = context.getPackageName();
         mLocale = locale;
-        mTextToSpeechObserable = Observable.create((Observable.OnSubscribe<TextToSpeech>) sub -> {
-            initTTS(context,locale, sub);
-        }).subscribeOn(SingleSchedulers.singleThread()).observeOn(AndroidSchedulers.mainThread())
-        .cache();
-        mTextToSpeechObserable.subscribe();
     }
 
-    private void initTTS(Context context,Locale locale, Subscriber sub) {
-        final AtomicReference<TextToSpeech> ttsRef = new AtomicReference<>();
-        CountDownLatch lock = new CountDownLatch(1);
-        ttsRef.set(new TextToSpeech(context, status -> {
-            new Thread(() ->{
-                setLocale(ttsRef.get(), status, locale);
-                lock.countDown();
-            }).start();
-        }));
-
-       try {
-            int timeout = 3000;
-            lock.await(timeout, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+    public PhoneticPlayer useTTS(boolean useTTS) {
+        mIsUseTTS.set(useTTS);
+        if(useTTS && (mTTSManager == null || mTTSManager.isShutdown())) {
+            mTTSManager = new TTSManager(mContext, mLocale);
+        } else if(!useTTS && mTTSManager != null) {
+            mTTSManager.close();
+            mTTSManager = null;
         }
-       // Log.i("testio", "Created TTS Engine : " + ttsRef.get().toString() +  "/" + Thread.currentThread().getId());
-        sub.onNext(ttsRef.get());
-        sub.onCompleted();
+        return this;
     }
-
-    private boolean setLocale(TextToSpeech tts, int status, Locale locale) {
-        if(status != TextToSpeech.SUCCESS || tts.setLanguage(locale) != TextToSpeech.SUCCESS) {
-            return false;
-        } else {
-            tts.setPitch(0.9f);
-        }
-        mPossibleTTS.set(true);
-        return  true;
-    }
-
 
     public void play(String word) {
-        //Log.i("testio", "call play TTS : " + word);
-        mTextToSpeechObserable
-        .onErrorResumeNext(e -> Observable.empty())
-        .subscribe(tts -> playTTS(tts, word));
-    }
-
-
-    private boolean playTTS(TextToSpeech tts, String word) {
-        if(tts == null) {
-            return false;
+        useTTS(mIsUseTTS.get());
+        if(mTTSManager != null) {
+            mTTSManager.play(word);
         }
-        //Log.i("testio", "play tts : " + word);
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-            tts.speak(word, TextToSpeech.QUEUE_FLUSH, null, mPackageName);
-        else
-            tts.speak(word, TextToSpeech.QUEUE_FLUSH, null);
-        return true;
     }
 
-    public boolean isPossibleTTS() {
-        return mPossibleTTS.get();
-    }
-
-
-    public boolean isTTSShoutdown() {
-        return mIsTTSShoutdown.get();
-    }
-
-
-    public void stoP() {
-        mTextToSpeechObserable
-        .onErrorResumeNext(e -> Observable.empty())
-        .subscribe(tts -> {
-            //Log.i("testio", "Stop TTS");
-            tts.stop();
-        });
+    public void stop() {
+        if(mTTSManager != null) {
+            mTTSManager.stop();
+        }
     }
 
     public void close() {
-        mTextToSpeechObserable
-        .onErrorResumeNext(e -> Observable.empty())
-        .subscribe(tts -> {
-            //Log.i("testio", "Shutdown TTS");
-            tts.stop();
-            tts.shutdown();
-            mIsTTSShoutdown.set(true);
-        });
+        if(mTTSManager != null) {
+            mTTSManager.close();
+        }
+    }
+
+
+    private static class TTSManager  {
+        Observable<TextToSpeech> textToSpeechObservable;
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        AtomicReference<String> mCachedWordRef = new AtomicReference<>("");
+        String packageName = "";
+        boolean isShutdowns = false;
+        boolean isSuccess = false;
+
+        private TTSManager(Context context,Locale locale) {
+            this.packageName = context.getPackageName();
+            textToSpeechObservable = createInitTTSObserable(context, locale);
+            textToSpeechObservable.subscribe();
+        }
+        private void TTSWorker() {}
+
+        public boolean isShutdown() {
+            return isShutdowns;
+        }
+
+
+        private Observable<TextToSpeech> createInitTTSObserable(Context context, Locale locale) {
+            return Observable.create((Observable.OnSubscribe<TextToSpeech>) sub -> {
+                initTTS(context,locale, sub);
+            }).subscribeOn(Schedulers.from(executorService)).observeOn(AndroidSchedulers.mainThread()).cache();
+        }
+
+
+        private void initTTS(Context context,Locale locale, Subscriber sub) {
+            final AtomicReference<TextToSpeech> ttsRef = new AtomicReference<>();
+            Log.i("testio", "Create TTS Engine start.");
+            CountDownLatch lock = new CountDownLatch(1);
+            AtomicBoolean isSuccess = new AtomicBoolean(false);
+            ttsRef.set(new TextToSpeech(context, status -> {
+                new Thread(() -> {
+                    isSuccess.set(setLocale(ttsRef.get(), status, locale));
+                    lock.countDown();
+                }).start();
+            }));
+            try {
+                int timeout = 3000;
+                lock.await(timeout, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            this.isSuccess = isSuccess.get();
+            Log.i("testio", "Created TTS Engine.");
+            sub.onNext(ttsRef.get());
+            sub.onCompleted();
+            if(!Strings.isNullOrEmpty(mCachedWordRef.get())) play(mCachedWordRef.get());
+        }
+
+        public void close() {
+            isShutdowns = true;
+            textToSpeechObservable
+                    .observeOn(Schedulers.from(executorService))
+                    .onErrorResumeNext(e -> Observable.empty())
+                    .subscribe(tts -> {
+                        Log.i("testio", "Shutdown TTS");
+                        try {
+                            tts.stop();
+                            tts.shutdown();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        executorService.shutdown();
+                    });
+            textToSpeechObservable = null;
+        }
+
+        public void play(String word) {
+            if(isShutdown()) return;
+            if(!isSuccess) {
+                mCachedWordRef.set(word);
+                return;
+            }
+            textToSpeechObservable.subscribe(tts -> playTTS(tts,word));
+        }
+
+        public void stop() {
+            if(isShutdown()) return;
+            textToSpeechObservable.subscribe(TextToSpeech::stop);
+        }
+
+        private boolean setLocale(TextToSpeech tts, int status, Locale locale) {
+            if(status != TextToSpeech.SUCCESS || tts.setLanguage(locale) != TextToSpeech.SUCCESS) {
+                return false;
+            } else {
+                tts.setPitch(0.9f);
+            }
+            return  true;
+        }
+
+        private boolean playTTS(TextToSpeech tts, String word) {
+            if(tts == null) {
+                return false;
+            }
+            Log.i("testio", "play tts : " + word);
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+                tts.speak(word, TextToSpeech.QUEUE_FLUSH, null, packageName);
+            else
+                tts.speak(word, TextToSpeech.QUEUE_FLUSH, null);
+            return true;
+        }
+
+        @Override
+        protected void finalize() throws Throwable {
+            // 메모리 누수를 막아라.. ㅡ , ㅡa
+            Log.i("testio", "Call finalized");
+            close();
+            super.finalize();
+        }
     }
 
 

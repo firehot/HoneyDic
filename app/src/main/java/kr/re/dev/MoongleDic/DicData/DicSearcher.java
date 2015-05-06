@@ -82,11 +82,16 @@ public class DicSearcher {
      * 사전을 닫아준다.
      */
     public void close() {
-        mInitRealObservable.flatMap(realm -> Observable.just(realm).subscribeOn(Schedulers.from(mSingleExecutor))
-        .map(realmIn -> { mIsRealmClosed.set(true);
-                          realmIn.close();
-                          return realmIn;
-                        })).subscribe();
+        mInitRealObservable.observeOn(Schedulers.from(mSingleExecutor))
+                .flatMap(realm -> Observable.just(realm)
+                        .subscribeOn(Schedulers.from(mSingleExecutor))
+                        .map(realmIn -> {
+                            mIsRealmClosed.set(true);
+                            realmIn.close();
+                            mSingleExecutor.shutdown();
+                            return realmIn;
+                        }))
+                .subscribe();
     }
 
     public String getDicname() {

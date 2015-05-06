@@ -22,8 +22,21 @@ public class Settings {
     private boolean mSoundEffect = true;
     private int mWordCardKeepTime = 0;
 
+
+    public static Settings getSettings(Intent intent) {
+        return new Settings(intent);
+    }
+
     public static Settings getSettings(Context context) {
         return new Settings(context);
+    }
+
+    private Settings(Intent intent) {
+        mUseClipboardDic =  intent.getBooleanExtra(SETTING_USE_CLIPBOARD_DIC, mUseClipboardDic);
+        mWordCardNoneForceClose =  intent.getBooleanExtra(SETTING_WORDCARD_NONE_FORCE_CLOSE, mWordCardNoneForceClose);
+        mWordCardKeepTime = intent.getIntExtra(SETTING_WORDCARD_KEEP_TIME, mWordCardKeepTime);
+        mUseTTS = intent.getBooleanExtra(SETTING_USE_TTS, mUseTTS);
+        mSoundEffect = intent.getBooleanExtra(SETTING_SOUND_EFFECT, mSoundEffect);
     }
 
     private Settings(Context context) {
@@ -51,7 +64,12 @@ public class Settings {
     }
 
     private void sendBroadcast(Context context) {
-        Intent intent = new Intent(context, ChangedSettingsReceiver.class);
+        Intent intent = new Intent(ChangedSettingsReceiver.ACTION_SETTING);
+        intent.putExtra(SETTING_USE_CLIPBOARD_DIC, mUseClipboardDic);
+        intent.putExtra(SETTING_WORDCARD_NONE_FORCE_CLOSE, mWordCardNoneForceClose);
+        intent.putExtra(SETTING_WORDCARD_KEEP_TIME, mWordCardKeepTime);
+        intent.putExtra(SETTING_USE_TTS, mUseTTS);
+        intent.putExtra(SETTING_SOUND_EFFECT, mSoundEffect);
         context.sendBroadcast(intent);
     }
 
