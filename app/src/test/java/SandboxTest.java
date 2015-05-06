@@ -35,28 +35,13 @@ public class SandboxTest {
         Response getImageFile(@Path("addr") String id);
     }
 
-    public  class  foo implements Comparable {
-        int i = 0;
-
-        foo(int s) {
-            i = s;
-        }
-        @Override
-        public int compareTo(Object another) {
-            foo o = (foo) another;
-
-            if(o.i < i) return 1;
-            else if(o.i > i) return -1;
-             return 0;
-        }
-    }
 
 
 
     @Test
     public void testAvailable() throws IOException, InterruptedException {
-        System.out.println("2.1".matches("^(2[.]).*"));
 
+        System.out.println("2   0   초간 유지".replaceAll("[^0-9]",""));
 
 //        CountDownLatch latch = new CountDownLatch(1);
 //        Robolectric.getFakeHttpLayer().interceptHttpRequests(false);

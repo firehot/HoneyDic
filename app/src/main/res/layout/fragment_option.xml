@@ -174,7 +174,8 @@
                 android:layout_alignLeft="@+id/textView11"
                 android:layout_alignStart="@+id/textView11"
                 android:layout_alignRight="@+id/textView10"
-                android:layout_alignEnd="@+id/textView10" />
+                android:layout_alignEnd="@+id/textView10"
+                android:layout_marginBottom="24dp" />
 
             <TextView
                 style="@style/TextStyle.Option.Section"
@@ -206,11 +207,10 @@
                 class="com.rey.material.widget.CheckBox"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:id="@+id/mcheckBoxNoneForce"
+                android:id="@+id/checkBoxNoneForceClose"
                 android:gravity="center_vertical"
                 android:layout_alignTop="@+id/textView5"
                 android:layout_alignLeft="@+id/viewCheckBoxUse"
-                android:layout_alignStart="@+id/checkBoxNoneForce"
                 android:checked="false"
                 android:layout_alignBottom="@+id/textView6"
                 app:cbd_strokeColor="@drawable/selector_checkbox"/>
@@ -219,12 +219,11 @@
                 class="com.rey.material.widget.CheckBox"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:id="@+id/view2"
+                android:id="@+id/checkBoxUseTTS"
                 android:gravity="center_vertical"
                 android:checked="false"
                 android:layout_alignTop="@+id/textView9"
-                android:layout_alignLeft="@+id/mcheckBoxNoneForce"
-                android:layout_alignStart="@+id/mcheckBoxNoneForce"
+                android:layout_alignLeft="@+id/checkBoxNoneForceClose"
                 android:layout_above="@+id/textView11"
                 app:cbd_strokeColor="@drawable/selector_checkbox"
                 />
@@ -233,12 +232,11 @@
                 class="com.rey.material.widget.CheckBox"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:id="@+id/view3"
+                android:id="@+id/checkBoxSoundEffect"
                 android:gravity="center_vertical"
                 android:checked="false"
                 android:layout_alignTop="@+id/textView11"
-                android:layout_alignLeft="@+id/view2"
-                android:layout_alignStart="@+id/view2"
+                android:layout_alignLeft="@+id/checkBoxUseTTS"
                 android:layout_alignBottom="@+id/textView12"
                 app:cbd_strokeColor="@drawable/selector_checkbox"/>
 

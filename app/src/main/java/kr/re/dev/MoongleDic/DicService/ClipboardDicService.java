@@ -10,9 +10,6 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -23,13 +20,12 @@ import kr.re.dev.MoongleDic.DicData.Database.DicInfoManager;
 import kr.re.dev.MoongleDic.DicData.DicSearcher;
 import kr.re.dev.MoongleDic.DicData.LocaleWordRefiner;
 import kr.re.dev.MoongleDic.DicData.WordCard;
-import kr.re.dev.MoongleDic.UI.DicItemViewWrapper;
-import kr.re.dev.MoongleDic.UI.DicToast;
+import kr.re.dev.MoongleDic.UI.WordCardToast;
 import rx.Observable;
 
-public class DicService extends Service {
+public class ClipboardDicService extends Service {
 
-    private DicToast mDicToast;
+    private WordCardToast mWordCardToast;
     private ClipboardManager mClipboardManager;
     private PhoneticPlayer mPhoneticPlayer;
     private DicSearcher mDicSearcher;
@@ -118,9 +114,9 @@ public class DicService extends Service {
     }
 
     private void showWordToast(String word) {
-        DicToast dicToast = DicToast.newInstance(getApplicationContext());
-        searchWord(word).flatMap(dicToast::show).subscribe(this::endWordCard);
-        dicToast.getSelectWordEvent().subscribe(mPhoneticPlayer::play);
+        WordCardToast wordCardToast = WordCardToast.newInstance(getApplicationContext());
+        searchWord(word).flatMap(wordCardToast::show).subscribe(this::endWordCard);
+        wordCardToast.getSelectWordEvent().subscribe(mPhoneticPlayer::play);
     }
 
     private Observable<List<WordCard>> searchWord(String word) {
@@ -140,12 +136,12 @@ public class DicService extends Service {
 
 
 
-    private void endWordCard(DicToast.HideDirection hide) {
+    private void endWordCard(WordCardToast.HideDirection hide) {
         mCurrentKeyword = "";
-        Toast.makeText(getApplicationContext(), (hide == DicToast.HideDirection.Left)?"왼쪽":"오른쪽", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), (hide == WordCardToast.HideDirection.Left)?"왼쪽":"오른쪽", Toast.LENGTH_SHORT).show();
         mPhoneticPlayer.stoP();
         Log.i("testio", (Debug.getNativeHeapAllocatedSize() / 1024.0f / 1024.0f) + "Mb");
-         mDicToast = null;
+         mWordCardToast = null;
         // 이러면 안 되는데... ㅡ , ㅡa
         // 괜히 쓰고 싶다.
         //if(!misArt) {

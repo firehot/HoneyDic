@@ -4,10 +4,15 @@ package kr.re.dev.MoongleDic;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.os.Build;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.SpinnerAdapter;
 
@@ -22,6 +27,7 @@ import java.lang.reflect.Field;
 
 import kr.re.dev.MoongleDic.DicService.PhoneticPlayer;
 import kr.re.dev.MoongleDic.UI.DicItemViewWrapper;
+import kr.re.dev.MoongleDic.UI.SettingFragment;
 
 public class MainActivity extends FragmentActivity {
 
@@ -30,19 +36,35 @@ public class MainActivity extends FragmentActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.fragment_option);
+        setContentView(R.layout.activity_main);
+
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window window = getWindow();
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.setStatusBarColor(getResources().getColor(R.color.HoneyDic_identity_600));
+        }
+
+        SettingFragment settingFragment = new SettingFragment();
+        FragmentManager manager =  getSupportFragmentManager();
+        FragmentTransaction ft =  manager.beginTransaction();
+        ft.add(R.id.frameLayoutContent,settingFragment);
+        ft.commit();
+
+
         //CheckBox checkBox = (CheckBox)findViewById(R.id.viewCheckBoxUse);
-        Spinner spinner = (Spinner)findViewById(R.id.viewSpinnerKeepTime);
+        // spinner = (Spinner)findViewById(R.id.viewSpinnerKeepTime);
 
 
 
-
+/*
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.KeepWordCardTimeSelectSpinnerItem, R.layout.item_keep_wordcard);
         spinner.setAdapter(adapter);
         spinner.setOnItemSelectedListener((self_, view, pos, id) -> {
 
 
-        });
+        });*/
 
         //finish();
         /*DicInfoManager dicInfoManager =  DicInfoManager.newInstance(this);

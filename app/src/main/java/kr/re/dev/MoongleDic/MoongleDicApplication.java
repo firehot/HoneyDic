@@ -1,15 +1,12 @@
 package kr.re.dev.MoongleDic;
 
 import android.app.Application;
-import android.content.Intent;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.google.common.collect.Maps;
 
 import java.util.HashMap;
-
-import kr.re.dev.MoongleDic.DicService.DicService;
 
 /**
  * 
@@ -20,8 +17,8 @@ public class MoongleDicApplication extends Application {
     @Override
     public void onCreate() {
         Log.i("testio", "start application");
-        Intent service = new Intent(getApplicationContext(), DicService.class);
-        startService(service);
+        //Intent service = new Intent(getApplicationContext(), DicService.class);
+        //startService(service);
         super.onCreate();
     }
 

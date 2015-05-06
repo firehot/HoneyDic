@@ -39,7 +39,7 @@ import rx.subjects.PublishSubject;
  * 첫 번째 버전에서 좌우 슬라이딩이 가능하다.
  * Created by ice3x2 on 15. 4. 15..
  */
-public class DicToast extends ViewWrapper implements View.OnTouchListener{
+public class WordCardToast extends ViewWrapper implements View.OnTouchListener{
 
     public enum HideDirection { Left, Right, NONE}
     enum Status {OnTouch, Show, Hide, OnAnimationEnd,OnAnimationCenter}
@@ -83,11 +83,11 @@ public class DicToast extends ViewWrapper implements View.OnTouchListener{
 
     private void DicToast() {}
 
-    public static DicToast newInstance(Context context) {
-        return new DicToast(context);
+    public static WordCardToast newInstance(Context context) {
+        return new WordCardToast(context);
     }
 
-    public DicToast(Context context) {
+    public WordCardToast(Context context) {
         super(context, R.layout.view_wordcard);
         initToastView();
     }

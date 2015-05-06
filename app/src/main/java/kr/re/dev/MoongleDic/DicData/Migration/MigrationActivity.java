@@ -3,10 +3,13 @@ package kr.re.dev.MoongleDic.DicData.Migration;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.TextView;
 
 import com.google.common.io.Files;
@@ -39,12 +42,13 @@ public class MigrationActivity  extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         finish();
-
-
         setContentView(R.layout.activity_main);
-        mLogTextView = (TextView)findViewById(R.id.textViewLog);
-        mProgressTextView = (TextView) findViewById(R.id.textView);
-        mMemInfoTextView = (TextView)findViewById(R.id.textViewMemInfo);
+
+
+
+       // mLogTextView = (TextView)findViewById(R.id.textViewLog);
+      //  mProgressTextView = (TextView) findViewById(R.id.textView);
+       // mMemInfoTextView = (TextView)findViewById(R.id.textViewMemInfo);
 
 
         //mUseMemorySeries.setSpacing(50);
