@@ -27,7 +27,6 @@ import android.widget.ListView;
 import com.google.common.collect.Lists;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import kr.re.dev.MoongleDic.Commons.ViewWrapper;
 import kr.re.dev.MoongleDic.DicData.WordCard;
@@ -102,6 +101,7 @@ public class WordCardToast extends ViewWrapper implements View.OnTouchListener{
         mListAdapter = new WordCardListAdapter(getContext());
         mListViewWordCard.setAdapter(mListAdapter);
         if(isOverLollipop()) {
+
             getView().setBackground(null);
             mShadowView = (FrameLayout)((LayoutInflater)getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.view_wordcard_shadow, null);
             mLayoutShadowContent = (FrameLayout)mShadowView.findViewById(R.id.frameLayoutSahdow);
@@ -506,7 +506,6 @@ public class WordCardToast extends ViewWrapper implements View.OnTouchListener{
         int startY =  (getView().getWidth() / 2) * -1;
         int y =  ((WindowManager.LayoutParams)getView().getLayoutParams()).y;
         initThresholdPoint();
-        AtomicInteger isChangedFit = new AtomicInteger(1);
         ValueAnimator moveAnimator =  ValueAnimator.ofInt(startY,y);
         ValueAnimator alphaAnimator =  ValueAnimator.ofFloat(0, 0.1f, 0.3f, 0.4f, 1.0f);
         AnimatorSet animatorSet = new AnimatorSet();
@@ -514,22 +513,16 @@ public class WordCardToast extends ViewWrapper implements View.OnTouchListener{
         animatorSet.setDuration(SHOW_ANIMATION_DURATIONS);
         Interpolator interpolator = AnimationUtils.loadInterpolator(getContext(), android.R.interpolator.decelerate_quad);
         animatorSet.setInterpolator(interpolator);
-        if(isOverLollipop()) {
-
-        }
-
         animatorSet.playTogether(moveAnimator, alphaAnimator);
         moveAnimator.addUpdateListener(animation -> {
-            setViewY((Integer) animation.getAnimatedValue());
-            if(isOverLollipop()) {
-                setShadowViewXFrom(0);
-                if(isChangedFit.get() == 1)
-                    isChangedFit.set(fitShadowViewSize());
-            }
-            //if (fitShadowViewSize() == 1) cacheToShadow();
+            int cY = (Integer)animation.getAnimatedValue();
+            setViewY(cY);
+            setShadowViewXFrom(0);
+            if (fitShadowViewSize() == 1) cacheToShadow();
+            if(cY == y) getView().post(WordCardToast.this::uncacheFromShadow);
+
         });
         alphaAnimator.addUpdateListener(animation -> setAlpha((Float) animation.getAnimatedValue()));
-        fitShadowViewSize();
         //if(fitShadowViewSize() == 1) cacheToShadow();
         fitShadowViewPoint();
         setShadowViewAlpha(0.0f);
@@ -538,7 +531,7 @@ public class WordCardToast extends ViewWrapper implements View.OnTouchListener{
             public void onAnimationStart(Animator animation) {}
             @Override
             public void onAnimationEnd(Animator animation) {
-                //getView().post(WordCardToast.this::uncacheFromShadow);
+
             }
             @Override
             public void onAnimationCancel(Animator animation) {}
@@ -604,7 +597,7 @@ public class WordCardToast extends ViewWrapper implements View.OnTouchListener{
                 mImageViewCahced.setImageBitmap(null);
                 mImageViewCahced.setVisibility(View.INVISIBLE);
             }
-        }, 100);
+        }, 120);
         getView().setVisibility(View.VISIBLE);
     }
 

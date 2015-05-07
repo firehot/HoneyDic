@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -82,16 +83,12 @@ public class DicSearcher {
      * 사전을 닫아준다.
      */
     public void close() {
-        mInitRealObservable.observeOn(Schedulers.from(mSingleExecutor))
-                .flatMap(realm -> Observable.just(realm)
-                        .subscribeOn(Schedulers.from(mSingleExecutor))
-                        .map(realmIn -> {
-                            mIsRealmClosed.set(true);
-                            realmIn.close();
-                            mSingleExecutor.shutdown();
-                            return realmIn;
-                        }))
-                .subscribe();
+        mInitRealObservable.subscribe(realmIn -> {
+                mSingleExecutor.shutdown();
+                mIsRealmClosed.set(true);
+                realmIn.close();
+                Log.i("testio", "DicSearcher is released");
+        });
     }
 
     public String getDicname() {

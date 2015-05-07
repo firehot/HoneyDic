@@ -20,10 +20,18 @@ public class MoongleDicApplication extends Application {
     @Override
     public void onCreate() {
         Log.i("testio", "start application");
-        Intent service = new Intent(getApplicationContext(), ClipboardDicService.class);
-        startService(service);
+        //Intent service = new Intent(getApplicationContext(), ClipboardDicService.class);
+        //startService(service);
         super.onCreate();
     }
+
+    @Override
+    public void onTerminate() {
+        Log.i("testio", "onTerminate");
+        super.onTerminate();
+    }
+
+
 
     @Override
     public void onTrimMemory(int level) {

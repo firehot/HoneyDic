@@ -136,12 +136,13 @@ public class PhoneticPlayer {
                     .observeOn(Schedulers.from(executorService))
                     .onErrorResumeNext(e -> Observable.empty())
                     .subscribe(tts -> {
-                        Log.i("testio", "Shutdown TTS");
                         try {
                             tts.stop();
                             tts.shutdown();
+                            Log.i("testio", "Shutdown TTS");
                         } catch (Exception e) {
                             e.printStackTrace();
+                            Log.i("testio", "Shutdown TTS Error : " + e.toString());
                         }
                         executorService.shutdown();
                     });
@@ -183,13 +184,6 @@ public class PhoneticPlayer {
             return true;
         }
 
-        @Override
-        protected void finalize() throws Throwable {
-            // 메모리 누수를 막아라.. ㅡ , ㅡa
-            Log.i("testio", "Call finalized");
-            close();
-            super.finalize();
-        }
     }
 
 
