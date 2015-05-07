@@ -103,7 +103,7 @@ public class SettingFragment extends Fragment{
     private int keepTimeStringToMsInt(String keepTimeString) {
         String time =  keepTimeString.replaceAll("[^0-9]", "");
         if(Strings.isNullOrEmpty(time)) time = "0";
-        return Integer.parseInt(time);
+        return Integer.parseInt(time) * 1000;
     }
 
 }

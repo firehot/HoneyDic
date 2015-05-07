@@ -1,6 +1,7 @@
 package kr.re.dev.MoongleDic.DicService;
 
 import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -28,6 +29,7 @@ import kr.re.dev.MoongleDic.DicData.Database.DicInfoManager;
 import kr.re.dev.MoongleDic.DicData.DicSearcher;
 import kr.re.dev.MoongleDic.DicData.LocaleWordRefiner;
 import kr.re.dev.MoongleDic.DicData.WordCard;
+import kr.re.dev.MoongleDic.MainActivity;
 import kr.re.dev.MoongleDic.R;
 import kr.re.dev.MoongleDic.UI.WordCardToast;
 import rx.Observable;
@@ -121,13 +123,16 @@ public class ClipboardDicService extends Service {
 
         Bitmap icon = BitmapFactory.decodeResource(getResources(),  R.mipmap.ic_launcher);
 
+        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+        PendingIntent pendingIntent =  PendingIntent.getActivity(getApplicationContext(), 0, intent, 0);
+
         Notification notification = new NotificationCompat.Builder(this)
                 .setContentTitle(getResources().getString(R.string.Notification_Title))
                 .setTicker(getResources().getString(R.string.Notification_Title))
                 .setContentText(getResources().getString(R.string.Notification_Content))
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setLargeIcon(Bitmap.createScaledBitmap(icon, 128, 128, false))
-                //.setContentIntent(pendingIntent)
+                .setContentIntent(pendingIntent)
                 .setOngoing(true)
                 .build();
         startForeground(Constants.NOTIFICATION_ID, notification);
@@ -152,7 +157,6 @@ public class ClipboardDicService extends Service {
     }
 
 
-
     private void release() {
         if(!mIsInit) return;
         mIsInit = false;
@@ -161,8 +165,6 @@ public class ClipboardDicService extends Service {
         unregisterReceiver(mChangedSettingsReceiver);
         mClipboardManager.removePrimaryClipChangedListener(mOnPrimaryClipChangedListener);
     }
-
-
 
 
     private ClipboardManager.OnPrimaryClipChangedListener mOnPrimaryClipChangedListener = new ClipboardManager.OnPrimaryClipChangedListener() {
@@ -187,7 +189,6 @@ public class ClipboardDicService extends Service {
                     return textItem.toString();
                 }
                 return "";
-
             }
 
         };
@@ -195,7 +196,7 @@ public class ClipboardDicService extends Service {
 
     private void showWordToast(String word) {
         WordCardToast wordCardToast = WordCardToast.newInstance(getApplicationContext());
-        searchWord(word).flatMap(wordCardToast::show).subscribe(this::endWordCard);
+        searchWord(word).flatMap(words -> wordCardToast.show(words, mSettings.getWordCardKeepTime())).subscribe(this::endWordCard);
         wordCardToast.getSelectWordEvent().subscribe(mPhoneticPlayer::play);
     }
 
@@ -212,9 +213,7 @@ public class ClipboardDicService extends Service {
 
     private void playTTS(String word) {
         mPhoneticPlayer.play(word);
-
     }
-
 
 
     private void endWordCard(WordCardToast.HideDirection hide) {
@@ -223,11 +222,6 @@ public class ClipboardDicService extends Service {
         mPhoneticPlayer.stop();
         Log.i("testio", (Debug.getNativeHeapAllocatedSize() / 1024.0f / 1024.0f) + "Mb");
         mWordCardToast = null;
-        // 이러면 안 되는데... ㅡ , ㅡa
-        // 괜히 쓰고 싶다.
-        //if(!misArt) {
-        //    System.gc();
-        //}
     }
 
     private void setSetting(Settings setting) {
@@ -239,7 +233,6 @@ public class ClipboardDicService extends Service {
 
         Intent intentBootBroadcast = new Intent(BootReceiver.ACTION_START_CLIPBOARDDIC);
         sendBroadcast(intentBootBroadcast);
-
     }
 
     public class Handler extends Binder {
@@ -257,7 +250,6 @@ public class ClipboardDicService extends Service {
         public Observable<List<WordCard>> searchWord(String word) {
             return mDicSearcher.search(word);
         }
-
     }
 
 

@@ -112,8 +112,12 @@ public class Settings {
         return mWordCardKeepTime;
     }
 
-    public void setWordCardKeepTime(int mWordCardKeepTime) {
-        this.mWordCardKeepTime = mWordCardKeepTime;
+    /**
+     * 단위는 ms 다.
+     * @param WordCardKeepTimeMs
+     */
+    public void setWordCardKeepTime(int WordCardKeepTimeMs) {
+        this.mWordCardKeepTime = WordCardKeepTimeMs;
     }
 
 

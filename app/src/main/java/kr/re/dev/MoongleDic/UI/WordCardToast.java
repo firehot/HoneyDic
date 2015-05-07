@@ -37,16 +37,21 @@ import rx.subjects.PublishSubject;
 /**
  * 사전에서 찾은 내용을 출력할 때 사용하는 토스트.
  * 첫 번째 버전에서 좌우 슬라이딩이 가능하다.
+ * 롤리팝에서 예상치 못한 파편화 관련 이슈를 발견하여 캐쉬 기능을 급 구현하였고,
+ * 동작이나 구조가 아주 어지럽고 개판이다.
+ * 이 문제는 WorCardView 자체를 커스터마이징하기 전까지는 현재 범위 내에서 수정하지 않는다.
  * Created by ice3x2 on 15. 4. 15..
  */
 public class WordCardToast extends ViewWrapper implements View.OnTouchListener{
 
-    public enum HideDirection { Left, Right, NONE}
-    enum Status {OnTouch, Show, Hide, OnAnimationEnd,OnAnimationCenter}
+    public enum HideDirection { Left, Right, None}
+    enum Status {OnTouch, Show, Hide,  OnAnimationEnd, OnAnimationCenter}
     private final static float THRESHOLD_MOVE_END = 0.5f;
     private final static float THRESHOLD_HIDE = 0.7f;
     private final static float THRESHOLD_VELOCITY = 2.0f;
     private final static int DEFAULT_ANIMATION_DURATIONS = 350;
+    private final static int VIEW_CACHE_EXCHANGE_DELAY = 100;
+
     private final static int SHOW_ANIMATION_DURATIONS = 450;
     private final static int START_SHOW_ANIMATION_DELAY_MS = 10;
     private Status mStatus = Status.Hide;
@@ -56,12 +61,13 @@ public class WordCardToast extends ViewWrapper implements View.OnTouchListener{
     private WordCardListAdapter mListAdapter;
     private FrameLayout mShadowView;
     private FrameLayout mLayoutShadowContent;
+    private boolean mIsTouchEnable = true;
     private boolean mIsAttached = false;
 
     // 드래그와 애니메이션등 이동에 관련된 상태 값.
     private VelocityTracker mVelocityTracker;
     private AnimatorSet mCurrentAnimationSet;
-    private HideDirection mHideDirection = HideDirection.NONE;
+    private HideDirection mHideDirection = HideDirection.None;
     private float mLeftMoveEndX = 0;
     private float mRightMoveEndX = 0;
     private float mMoveEndX = 0;
@@ -145,7 +151,7 @@ public class WordCardToast extends ViewWrapper implements View.OnTouchListener{
         mListAdapter.addAll(wordCardList);
     }
 
-    public Observable<HideDirection> show(List<WordCard> wordCardList) {
+    public Observable<HideDirection> show(List<WordCard> wordCardList, int duration) {
         if(wordCardList.isEmpty()) {
             return makeEmptyHiddenEvent();
         }
@@ -159,13 +165,29 @@ public class WordCardToast extends ViewWrapper implements View.OnTouchListener{
             });
         } else {
             addView();
+            hideOverDuration(duration);
         }
         return getHideEvent();
     }
 
-    private void hide() {
+    private void hideImmediately () {
         onHideEvent();
         removeView();
+    }
+
+    private void hideOverDuration(int duration) {
+        if(duration == 0 || mStatus == Status.Hide) return;
+        getView().postDelayed(()-> {
+            if(mStatus != Status.Show) {
+                hideOverDuration(duration);
+            } else if(mStatus != Status.Hide && mStatus != Status.OnAnimationEnd) {
+                mStatus =  Status.OnAnimationEnd;
+                setTochEnable(false);
+                Interpolator interpolator = AnimationUtils.loadInterpolator(getContext(), android.R.interpolator.decelerate_quad);
+                startHideAnimation(0, 0.0f, DEFAULT_ANIMATION_DURATIONS, interpolator);
+            }
+        }, duration);
+
     }
 
 
@@ -202,6 +224,7 @@ public class WordCardToast extends ViewWrapper implements View.OnTouchListener{
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
+        if(!isTouchable()) return true;
         float touchX =  event.getRawX();
         if(event.getAction() == MotionEvent.ACTION_DOWN && mStatus == Status.Show) {
             initThresholdPoint();
@@ -305,6 +328,7 @@ public class WordCardToast extends ViewWrapper implements View.OnTouchListener{
 
     private void addView() {
         if(!mIsAttached) {
+            setTochEnable(false);
             mHideEventSubject = PublishSubject.create();
             mWindowLayoutParams =  makeLayoutParams();
             mWindowLayoutParams.alpha = 0.0f;
@@ -431,8 +455,13 @@ public class WordCardToast extends ViewWrapper implements View.OnTouchListener{
         mLastViewX = x;
         if(mIsAttached)
             mWindowManager.updateViewLayout(view, layoutParams);
-        //setShadowViewXFrom(lastMoved);
+    }
 
+    public void setTochEnable(boolean touchEnable) {
+        mIsTouchEnable = touchEnable;
+    }
+    public boolean isTouchable() {
+        return  mIsTouchEnable;
     }
 
     private void setViewY(int y) {
@@ -480,7 +509,7 @@ public class WordCardToast extends ViewWrapper implements View.OnTouchListener{
                 if (isCancled) return;
                 uncacheFromShadow();
                 if (mStatus == Status.OnAnimationEnd) {
-                    hide();
+                    hideImmediately();
                 } else {
                     mStatus = Status.Show;
                     setViewX(mX);
@@ -500,8 +529,6 @@ public class WordCardToast extends ViewWrapper implements View.OnTouchListener{
         animatorSet.start();
     }
 
-
-
     private void startShowAnimation() {
         int startY =  (getView().getWidth() / 2) * -1;
         int y =  ((WindowManager.LayoutParams)getView().getLayoutParams()).y;
@@ -519,27 +546,19 @@ public class WordCardToast extends ViewWrapper implements View.OnTouchListener{
             setViewY(cY);
             setShadowViewXFrom(0);
             if (fitShadowViewSize() == 1) cacheToShadow();
-            if(cY == y) getView().post(WordCardToast.this::uncacheFromShadow);
-
+            if(cY == y) {
+                getView().post(WordCardToast.this::uncacheFromShadow);
+                getView().postDelayed(()->setTochEnable(true), VIEW_CACHE_EXCHANGE_DELAY);
+            }
         });
         alphaAnimator.addUpdateListener(animation -> setAlpha((Float) animation.getAnimatedValue()));
-        //if(fitShadowViewSize() == 1) cacheToShadow();
         fitShadowViewPoint();
         setShadowViewAlpha(0.0f);
-        animatorSet.addListener(new Animator.AnimatorListener() {
-            @Override
-            public void onAnimationStart(Animator animation) {}
-            @Override
-            public void onAnimationEnd(Animator animation) {
-
-            }
-            @Override
-            public void onAnimationCancel(Animator animation) {}
-            @Override
-            public void onAnimationRepeat(Animator animation) {}
-        });
         animatorSet.start();
     }
+
+
+
 
     /**
      * 사용할 수 없으면 -1 <br/>
@@ -572,7 +591,7 @@ public class WordCardToast extends ViewWrapper implements View.OnTouchListener{
     private void cacheToShadow() {
         if(!isOverLollipop()) return;
         cacheToShadowImmediately();
-        mImageViewCahced.postDelayed(() -> getView().setVisibility(View.INVISIBLE), 100);
+        mImageViewCahced.postDelayed(() -> getView().setVisibility(View.INVISIBLE), VIEW_CACHE_EXCHANGE_DELAY);
     }
 
     private void cacheToShadowImmediately() {
@@ -597,7 +616,7 @@ public class WordCardToast extends ViewWrapper implements View.OnTouchListener{
                 mImageViewCahced.setImageBitmap(null);
                 mImageViewCahced.setVisibility(View.INVISIBLE);
             }
-        }, 120);
+        }, VIEW_CACHE_EXCHANGE_DELAY);
         getView().setVisibility(View.VISIBLE);
     }
 
