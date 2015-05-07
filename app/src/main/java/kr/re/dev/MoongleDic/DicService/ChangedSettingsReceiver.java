@@ -6,12 +6,13 @@ import android.content.Intent;
 
 import com.google.common.base.Strings;
 
+import kr.re.dev.MoongleDic.Constants;
 import rx.Observable;
 import rx.subjects.PublishSubject;
 
 public class ChangedSettingsReceiver extends BroadcastReceiver {
 
-    public final static String ACTION_SETTING = "kr.re.dev.MoongleDic.Settings";
+
 
     private PublishSubject<Settings> mSettingPublishSubject = PublishSubject.create();
     public ChangedSettingsReceiver() {}
@@ -23,7 +24,7 @@ public class ChangedSettingsReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
-        if(!Strings.isNullOrEmpty(action) && action.equals(ACTION_SETTING)) {
+        if(!Strings.isNullOrEmpty(action) && action.equals(Constants.ACTION.BROADCAST_SETTING)) {
             Settings settings =  Settings.getSettings(intent);
             mSettingPublishSubject.onNext(settings);
         }

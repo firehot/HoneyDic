@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 
+import kr.re.dev.MoongleDic.Constants;
+
 /**
  * Created by ice3x2 on 15. 5. 6..
  */
@@ -64,7 +66,7 @@ public class Settings {
     }
 
     private void sendBroadcast(Context context) {
-        Intent intent = new Intent(ChangedSettingsReceiver.ACTION_SETTING);
+        Intent intent = new Intent(Constants.ACTION.BROADCAST_SETTING);
         intent.putExtra(SETTING_USE_CLIPBOARD_DIC, mUseClipboardDic);
         intent.putExtra(SETTING_WORDCARD_NONE_FORCE_CLOSE, mWordCardNoneForceClose);
         intent.putExtra(SETTING_WORDCARD_KEEP_TIME, mWordCardKeepTime);

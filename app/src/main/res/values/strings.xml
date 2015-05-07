@@ -25,9 +25,8 @@
     <string name="Option.General.UseTTS.Description">안드로이드의 TTS 엔진을 통하여 합성된 단어 발음을 들려줍니다.</string>
     <string name="Option.General.SoundEffect">효과음</string>
     <string name="Option.General.SoundEffect.Description">효과음을 사용할 수 있습니다.</string>
-    
-
-
+    <string name="Notification.Title">클립보드 사전 사용중</string>
+    <string name="Notification.Content">허니 딕</string>
 
 
 </resources>

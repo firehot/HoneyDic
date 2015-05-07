@@ -1,14 +1,18 @@
 package kr.re.dev.MoongleDic.DicService;
 
+import android.app.Notification;
 import android.app.Service;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Binder;
 import android.os.Debug;
 import android.os.IBinder;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -19,13 +23,14 @@ import com.google.common.collect.Maps;
 import java.util.HashMap;
 import java.util.List;
 
+import kr.re.dev.MoongleDic.Constants;
 import kr.re.dev.MoongleDic.DicData.Database.DicInfoManager;
 import kr.re.dev.MoongleDic.DicData.DicSearcher;
 import kr.re.dev.MoongleDic.DicData.LocaleWordRefiner;
 import kr.re.dev.MoongleDic.DicData.WordCard;
+import kr.re.dev.MoongleDic.R;
 import kr.re.dev.MoongleDic.UI.WordCardToast;
 import rx.Observable;
-import rx.subjects.PublishSubject;
 
 public class ClipboardDicService extends Service {
 
@@ -53,10 +58,9 @@ public class ClipboardDicService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i("testio", "Start : ClipboardDicService   flags : " + flags +  "  startID : "  + startId + " this : " + this);
-        Log.i("testio"," intent : " + intent);
+        Log.i("testio", " intent : " + intent);
         init();
         Log.i("testio", " isUseClipboardDic : " + mSettings.isUseClipboardDic());
-
         return (mSettings.isUseClipboardDic())?START_STICKY:START_NOT_STICKY;
     }
 
@@ -95,7 +99,9 @@ public class ClipboardDicService extends Service {
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         Log.i("testio", "remove task");
-        release();
+        if(!mSettings.isWordCardNoneForceClose()) {
+            release();
+        }
         super.onTaskRemoved(rootIntent);
     }
 
@@ -104,6 +110,27 @@ public class ClipboardDicService extends Service {
         Log.i("testio", "destory ClipboardDicService");
         release();
         super.onDestroy();
+    }
+
+
+    private void disableNoneForceClose() {
+        stopForeground(true);
+    }
+
+    private void enableNoneForceClose() {
+
+        Bitmap icon = BitmapFactory.decodeResource(getResources(),  R.mipmap.ic_launcher);
+
+        Notification notification = new NotificationCompat.Builder(this)
+                .setContentTitle(getResources().getString(R.string.Notification_Title))
+                .setTicker(getResources().getString(R.string.Notification_Title))
+                .setContentText(getResources().getString(R.string.Notification_Content))
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setLargeIcon(Bitmap.createScaledBitmap(icon, 128, 128, false))
+                //.setContentIntent(pendingIntent)
+                .setOngoing(true)
+                .build();
+        startForeground(Constants.NOTIFICATION_ID, notification);
     }
 
 
@@ -117,7 +144,7 @@ public class ClipboardDicService extends Service {
         mClipboardManager = (ClipboardManager)context.getSystemService(Context.CLIPBOARD_SERVICE);
         mClipboardManager.addPrimaryClipChangedListener(mOnPrimaryClipChangedListener);
         mChangedSettingsReceiver = new ChangedSettingsReceiver();
-        IntentFilter intentFilter = new IntentFilter(ChangedSettingsReceiver.ACTION_SETTING);
+        IntentFilter intentFilter = new IntentFilter(Constants.ACTION.BROADCAST_SETTING);
         mChangedSettingsReceiver.settingChangedEvent().subscribe(this::setSetting);
         registerReceiver(mChangedSettingsReceiver, intentFilter);
         misArt =  System.getProperty("java.vm.version").matches("^(2[.]).*");
@@ -207,8 +234,11 @@ public class ClipboardDicService extends Service {
         mSettings = setting;
         mPhoneticPlayer.useTTS(setting.isUseTTS());
 
+        if(setting.isWordCardNoneForceClose() && setting.isUseClipboardDic()) enableNoneForceClose();
+        else disableNoneForceClose();
+
         Intent intentBootBroadcast = new Intent(BootReceiver.ACTION_START_CLIPBOARDDIC);
-        getApplicationContext().sendBroadcast(intentBootBroadcast);
+        sendBroadcast(intentBootBroadcast);
 
     }
 
