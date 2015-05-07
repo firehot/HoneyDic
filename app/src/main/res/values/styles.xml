@@ -2,61 +2,63 @@
 
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <!-- Customize your theme here. -->
+    <style name="HoneyDicTheme">
+
+    </style>
+    <style name="HoneyDicTheme.Main" parent="HoneyDicTheme.NoActionBar">
+        <item name="android:typeface">sans</item>
+        <item name="android:windowBackground">@color/HoneyDic_identity_50</item>
     </style>
 
-    <style name="App">AppStyle</style>
-    <style name="App.Toolbar">
+    <style name="HoneyDicTheme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">
+    </style>
+
+
+    <style name="HoneyDic">AppStyle</style>
+    <style name="HoneyDic.MainToolbar" parent="Base.Widget.AppCompat.Toolbar">
         <item name="android:background">@color/HoneyDic_identity</item>
         <item name="android:height">?attr/actionBarSize</item>
     </style>
 
 
+
     <style name="Animation"/>
-    <style name="WordCard">WordCard</style>
+    <style name="HoneyDic.WordCard">WordCard</style>
 
-    <style name="Animation.DicToast">
-        <item name="android:windowEnterAnimation">@anim/dictoast_enter</item>
-    </style>
 
-    <style name="WordCard.Background">
+    <style name="HoneyDic.WordCard.Background">
         <item name="android:background">@drawable/background_with_shadow</item>
     </style>
 
-    <style name="WordCard.ListView">
+    <style name="HoneyDic.WordCard.ListView">
         <item name="android:layout_width">300dp</item>
         <item name="android:paddingBottom">16dp</item>
         <item name="android:paddingTop">8dp</item>
+
     </style>
 
 
-    <style name="TextStyle">TextStyle</style>
-    <style name="TextStyle.Option">
-        <item name="android:fontFamily">sans</item>
+    <style name="HoneyDic.TextAppearance">TextStyle</style>
+    <style name="HoneyDic.TextAppearance.Option">
     </style>
 
-    <style name="TextStyle.Option.Title">
-        <item name="android:textSize">22sp</item>
+    <style name="HoneyDic.TextAppearance.Option.Title" parent="HoneyDic.TextAppearance.Option">
+        <item name="android:textSize">20sp</item>
         <item name="android:textColor">@color/HoneyDic_identity_900</item>
     </style>
 
-    <style name="TextStyle.Option.Title.Spinner">
-        <item name="android:textSize">22sp</item>
+    <style name="HoneyDic.TextAppearance.Option.Title.Spinner" parent="HoneyDic.TextAppearance.Option">
+        <item name="android:textSize">20sp</item>
         <item name="android:textColor">@color/HoneyDic_identity_900</item>
     </style>
 
-    <style name="TextStyle.Option.Description">
+    <style name="HoneyDic.TextAppearance.Option.Description" parent="HoneyDic.TextAppearance.Option">
         <item name="android:textSize">14sp</item>
         <item name="android:textColor">@color/HoneyDic_identity_700</item>
     </style>
 
-    <style name="TextStyle.Option.SpinnerPopup" parent="@android:style/Widget.Spinner">
-        <item name="android:background">@color/HoneyDic_identity_100</item>
-        <item name="android:height">100dp</item>
-    </style>
 
-    <style name="TextStyle.Option.Section">
+    <style name="HoneyDic.TextAppearance.Option.Section" parent="HoneyDic.TextAppearance.Option">
         <item name="android:textSize">15sp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textColor">@color/HoneyDic_identity_700</item>

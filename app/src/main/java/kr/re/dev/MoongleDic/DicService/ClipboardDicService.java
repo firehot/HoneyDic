@@ -44,6 +44,7 @@ public class ClipboardDicService extends Service {
     private String mCurrentKeyword = "";
     private ChangedSettingsReceiver mChangedSettingsReceiver;
     private Settings mSettings;
+    private SoundEffectPlayer mSoundEffectPlayer;
     private boolean mIsInit = false;
     private boolean misArt;
 
@@ -62,6 +63,7 @@ public class ClipboardDicService extends Service {
         Log.i("testio", "Start : ClipboardDicService   flags : " + flags +  "  startID : "  + startId + " this : " + this);
         Log.i("testio", " intent : " + intent);
         init();
+
         Log.i("testio", " isUseClipboardDic : " + mSettings.isUseClipboardDic());
         return (mSettings.isUseClipboardDic())?START_STICKY:START_NOT_STICKY;
     }
@@ -82,20 +84,23 @@ public class ClipboardDicService extends Service {
     @Override
     public boolean onUnbind(Intent intent) {
         Log.i("testio", "onUnbind : ClipboardDicService");
+        if(!mSettings.isUseClipboardDic()) {
+            stopSelf();
+        }
         return super.onUnbind(intent);
     }
 
     @Override
     public void onTrimMemory(int level) {
         super.onTrimMemory(level);
-        HashMap<Integer,String> map = Maps.newHashMap();
-         map.put(15,"TRIM_MEMORY_RUNNING_CRITICAL (Service)" );
-          map.put(10,"TRIM_MEMORY_RUNNING_LOW  (Service)" );
-        map.put(5,"TRIM_MEMORY_RUNNING_MODERATE  (Service)" );
-        map.put(20,"TRIM_MEMORY_UI_HIDDEN  (Service)" );
-        String msg = map.get(level);
-        if(Strings.isNullOrEmpty(msg)) msg = level + "";
-       Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+//        HashMap<Integer,String> map = Maps.newHashMap();
+//         map.put(15,"TRIM_MEMORY_RUNNING_CRITICAL (Service)" );
+//          map.put(10,"TRIM_MEMORY_RUNNING_LOW  (Service)" );
+//        map.put(5,"TRIM_MEMORY_RUNNING_MODERATE  (Service)" );
+//        map.put(20,"TRIM_MEMORY_UI_HIDDEN  (Service)" );
+//        String msg = map.get(level);
+//        if(Strings.isNullOrEmpty(msg)) msg = level + "";
+//       Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -104,6 +109,8 @@ public class ClipboardDicService extends Service {
         if(!mSettings.isWordCardNoneForceClose()) {
             release();
         }
+
+
         super.onTaskRemoved(rootIntent);
     }
 
@@ -153,6 +160,7 @@ public class ClipboardDicService extends Service {
         mChangedSettingsReceiver.settingChangedEvent().subscribe(this::setSetting);
         registerReceiver(mChangedSettingsReceiver, intentFilter);
         misArt =  System.getProperty("java.vm.version").matches("^(2[.]).*");
+        mSoundEffectPlayer = SoundEffectPlayer.getInstance(this);
         setSetting(Settings.getSettings(context));
     }
 
@@ -162,6 +170,7 @@ public class ClipboardDicService extends Service {
         mIsInit = false;
         mPhoneticPlayer.close();
         mDicSearcher.close();
+        mSoundEffectPlayer.release();
         unregisterReceiver(mChangedSettingsReceiver);
         mClipboardManager.removePrimaryClipChangedListener(mOnPrimaryClipChangedListener);
     }
@@ -218,6 +227,7 @@ public class ClipboardDicService extends Service {
 
     private void endWordCard(WordCardToast.HideDirection hide) {
         mCurrentKeyword = "";
+        mSoundEffectPlayer.play(SoundEffectPlayer.SoundEffect.TrashWordCard);
         Toast.makeText(getApplicationContext(), (hide == WordCardToast.HideDirection.Left)?"왼쪽":"오른쪽", Toast.LENGTH_SHORT).show();
         mPhoneticPlayer.stop();
         Log.i("testio", (Debug.getNativeHeapAllocatedSize() / 1024.0f / 1024.0f) + "Mb");
@@ -227,9 +237,15 @@ public class ClipboardDicService extends Service {
     private void setSetting(Settings setting) {
         mSettings = setting;
         mPhoneticPlayer.useTTS(setting.isUseTTS());
+        if(setting.isWordCardNoneForceClose() && setting.isUseClipboardDic())
+            enableNoneForceClose();
+        else
+            disableNoneForceClose();
 
-        if(setting.isWordCardNoneForceClose() && setting.isUseClipboardDic()) enableNoneForceClose();
-        else disableNoneForceClose();
+        if(setting.isSoundEffect() && mSoundEffectPlayer.isReleased())
+            mSoundEffectPlayer = SoundEffectPlayer.getInstance(getApplicationContext());
+        else if(!setting.isSoundEffect())
+            mSoundEffectPlayer.release();
 
         Intent intentBootBroadcast = new Intent(BootReceiver.ACTION_START_CLIPBOARDDIC);
         sendBroadcast(intentBootBroadcast);

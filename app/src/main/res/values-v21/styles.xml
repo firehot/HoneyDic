@@ -1,0 +1,11 @@
+<resources>
+    <style name="HoneyDicTheme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:colorPrimary">@color/HoneyDic_identity</item>
+        <item name="android:colorPrimaryDark">@color/HoneyDic_identity_700</item>
+        <item name="android:navigationBarColor">@color/HoneyDic_identity_900</item>
+    </style>
+</resources>
+
+
+
+

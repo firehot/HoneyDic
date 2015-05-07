@@ -16,7 +16,7 @@
             android:layout_height="match_parent">
 
             <TextView
-                style="@style/TextStyle.Option.Section"
+                style="@style/HoneyDic.TextAppearance.Option.Section"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/Option.ClipboardDic"
@@ -39,7 +39,7 @@
                 android:layout_marginTop="6dp" />
 
             <TextView
-                style="@style/TextStyle.Option.Title"
+                style="@style/HoneyDic.TextAppearance.Option.Title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceLarge"
@@ -53,7 +53,7 @@
                 android:layout_marginStart="17dp" />
 
             <TextView
-                style="@style/TextStyle.Option.Description"
+                style="@style/HoneyDic.TextAppearance.Option.Description"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
@@ -65,7 +65,7 @@
                 android:layout_marginRight="92dp" />
 
             <TextView
-                style="@style/TextStyle.Option.Title"
+                style="@style/HoneyDic.TextAppearance.Option.Title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceLarge"
@@ -77,7 +77,7 @@
                 android:layout_alignStart="@+id/textView4" />
 
             <TextView
-                style="@style/TextStyle.Option.Description"
+                style="@style/HoneyDic.TextAppearance.Option.Description"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
@@ -90,7 +90,7 @@
                 android:layout_alignEnd="@+id/textView4" />
 
             <TextView
-                style="@style/TextStyle.Option.Title"
+                style="@style/HoneyDic.TextAppearance.Option.Title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceLarge"
@@ -102,7 +102,7 @@
                 android:layout_alignStart="@+id/textView6" />
 
             <TextView
-                style="@style/TextStyle.Option.Description"
+                style="@style/HoneyDic.TextAppearance.Option.Description"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
@@ -127,7 +127,7 @@
                 android:layout_marginRight="12dp" />
 
             <TextView
-                style="@style/TextStyle.Option.Title"
+                style="@style/HoneyDic.TextAppearance.Option.Title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceLarge"
@@ -139,7 +139,7 @@
                 android:layout_alignStart="@+id/textView8" />
 
             <TextView
-                style="@style/TextStyle.Option.Description"
+                style="@style/HoneyDic.TextAppearance.Option.Description"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
@@ -152,7 +152,7 @@
                 android:layout_alignEnd="@+id/textView8" />
 
             <TextView
-                style="@style/TextStyle.Option.Title"
+                style="@style/HoneyDic.TextAppearance.Option.Title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceLarge"
@@ -164,11 +164,11 @@
                 android:layout_alignStart="@+id/textView10" />
 
             <TextView
-                style="@style/TextStyle.Option.Description"
+                style="@style/HoneyDic.TextAppearance.Option.Description"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
-                android:text="@string/Option.ClipboardDic.Use.Description"
+                android:text="@string/Option.General.SoundEffect.Description"
                 android:id="@+id/textView12"
                 android:layout_below="@+id/textView11"
                 android:layout_alignLeft="@+id/textView11"
@@ -178,7 +178,7 @@
                 android:layout_marginBottom="24dp" />
 
             <TextView
-                style="@style/TextStyle.Option.Section"
+                style="@style/HoneyDic.TextAppearance.Option.Section"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
