@@ -2,7 +2,11 @@ package kr.re.dev.MoongleDic.Commons;
 
 import java.lang.ref.WeakReference;
 
-
+/**
+ * CallInfo class
+ * private 메소드를 호출해주는 모듈중 일부.   Copyright (C)  2015 ice3x2@gmail.com
+ * 사용법 : http://www.dev.re.kr/77
+ */
 public class CallInfo {
 	public Class<?>[] mArgsClass = new Class[0];
 	public Object[] mArguments = new Object[0];

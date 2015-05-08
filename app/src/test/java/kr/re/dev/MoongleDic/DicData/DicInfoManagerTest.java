@@ -22,6 +22,9 @@ import static junit.framework.Assert.assertEquals;
 @Config(emulateSdk = 18, manifest = "./app/src/main/AndroidManifest.xml")
 public class DicInfoManagerTest{
 
+
+
+
     DicInfoManager mDicInfoManager;
 
     @Before

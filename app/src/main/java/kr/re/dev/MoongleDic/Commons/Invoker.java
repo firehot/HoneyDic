@@ -6,6 +6,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+
+/**
+ * CallInfo class
+ * private 메소드를 호출해주는 모듈중 일부.   Copyright (C)  2015 ice3x2@gmail.com
+ * 사용법 : http://www.dev.re.kr/77
+ */
 public class Invoker {
 
 	public static Object invokeStatic(Class<?> type,String methodName) throws Exception {

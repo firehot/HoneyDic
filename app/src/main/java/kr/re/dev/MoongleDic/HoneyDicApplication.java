@@ -1,18 +1,19 @@
-package kr.re.dev.MoongleDic.DicService;
+package kr.re.dev.MoongleDic;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
+import android.app.Application;
 import android.content.Intent;
+import android.util.Log;
+import android.widget.Toast;
 
-import com.google.common.base.Strings;
+import com.google.common.collect.Maps;
 
-import kr.re.dev.MoongleDic.Constants;
-import rx.Observable;
-import rx.subjects.PublishSubject;
+import java.util.HashMap;
+
+import kr.re.dev.MoongleDic.DicService.ClipboardDicService;
 
 /**
- *  클립보드 영어사전 HoenyDic::ChangedSettingsReceiver class.
- *  설정(Settings) 변경 브로드캐스트를 받는다.
+ *  클립보드 영어사전 HoenyDic::HoneyDicApplication class.
+ *  어플리케이션
  *  Copyright (C) 2015 ice3x2@gmail.com [https://github.com/ice3x2/HoneyDic]
  *  </br></br>
  *
@@ -31,21 +32,39 @@ import rx.subjects.PublishSubject;
  *  당신은 이 프로그램과 함께 GNU 일반 공중 사용허가서를 받았을 것입니다. 만약 그렇지 않다면, < http://www.gnu.org/licenses/ > 를 보십시오.
  *
  */
-public class ChangedSettingsReceiver extends BroadcastReceiver {
+public class HoneyDicApplication extends Application {
 
-    private PublishSubject<Settings> mSettingPublishSubject = PublishSubject.create();
-    public ChangedSettingsReceiver() {}
-
-    public Observable<Settings> settingChangedEvent() {
-        return Observable.merge(mSettingPublishSubject.asObservable(), Observable.<Settings>empty());
+    @Override
+    public void onCreate() {
+        Log.i("testio", "start application");
+        //Intent service = new Intent(getApplicationContext(), ClipboardDicService.class);
+        //startService(service);
+        super.onCreate();
     }
 
     @Override
-    public void onReceive(Context context, Intent intent) {
-        String action = intent.getAction();
-        if(!Strings.isNullOrEmpty(action) && action.equals(Constants.ACTION.BROADCAST_SETTING)) {
-            Settings settings =  Settings.getSettings(intent);
-            mSettingPublishSubject.onNext(settings);
-        }
+    public void onTerminate() {
+        Log.i("testio", "onTerminate");
+        super.onTerminate();
     }
+
+
+
+    @Override
+    public void onTrimMemory(int level) {
+        super.onTrimMemory(level);
+        HashMap<Integer,String> map = Maps.newHashMap();
+        //map.put(15,"TRIM_MEMORY_RUNNING_CRITICAL" );
+        //map.put(10,"TRIM_MEMORY_RUNNING_LOW" );
+        //map.put(5,"TRIM_MEMORY_RUNNING_MODERATE" );
+        //map.put(20,"TRIM_MEMORY_UI_HIDDEN" );
+        //Toast.makeText(getApplicationContext(), map.get(level), Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        //Toast.makeText(getApplicationContext(),"Low memory!", Toast.LENGTH_SHORT).show();
+    }
+
 }

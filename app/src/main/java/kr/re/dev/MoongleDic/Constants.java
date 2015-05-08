@@ -1,7 +1,7 @@
 package kr.re.dev.MoongleDic;
 
 /**
- * Created by ice3x2 on 15. 5. 7..
+ * 상수 값을 갖고 있다.
  */
 public class Constants {
     private Constants(){}

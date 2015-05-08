@@ -1,18 +1,14 @@
-package kr.re.dev.MoongleDic.DicService;
+package kr.re.dev.MoongleDic.Commons;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-import com.google.common.base.Strings;
-
-import kr.re.dev.MoongleDic.Constants;
-import rx.Observable;
-import rx.subjects.PublishSubject;
+import rx.Scheduler;
+import rx.schedulers.Schedulers;
 
 /**
- *  클립보드 영어사전 HoenyDic::ChangedSettingsReceiver class.
- *  설정(Settings) 변경 브로드캐스트를 받는다.
+ *  클립보드 영어사전 HoenyDic::SingleSchedulers class.
+ *  HoenyDic 에서 사용하는 단 하나의 싱글 쓰레드 풀의 Scheduler (rx.Scheduler)
  *  Copyright (C) 2015 ice3x2@gmail.com [https://github.com/ice3x2/HoneyDic]
  *  </br></br>
  *
@@ -31,21 +27,12 @@ import rx.subjects.PublishSubject;
  *  당신은 이 프로그램과 함께 GNU 일반 공중 사용허가서를 받았을 것입니다. 만약 그렇지 않다면, < http://www.gnu.org/licenses/ > 를 보십시오.
  *
  */
-public class ChangedSettingsReceiver extends BroadcastReceiver {
+public class SingleSchedulers {
+    private static final ExecutorService sSingleThreadExecutor = Executors.newSingleThreadExecutor();
+    private static final Scheduler SINGLE_THREAD_SCHEDULER = Schedulers.from(sSingleThreadExecutor);
 
-    private PublishSubject<Settings> mSettingPublishSubject = PublishSubject.create();
-    public ChangedSettingsReceiver() {}
-
-    public Observable<Settings> settingChangedEvent() {
-        return Observable.merge(mSettingPublishSubject.asObservable(), Observable.<Settings>empty());
+    public static Scheduler singleThread() {
+        return SINGLE_THREAD_SCHEDULER;
     }
 
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        String action = intent.getAction();
-        if(!Strings.isNullOrEmpty(action) && action.equals(Constants.ACTION.BROADCAST_SETTING)) {
-            Settings settings =  Settings.getSettings(intent);
-            mSettingPublishSubject.onNext(settings);
-        }
-    }
 }

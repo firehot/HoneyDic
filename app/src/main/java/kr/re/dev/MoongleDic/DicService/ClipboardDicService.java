@@ -34,9 +34,30 @@ import kr.re.dev.MoongleDic.R;
 import kr.re.dev.MoongleDic.UI.WordCardToast;
 import rx.Observable;
 
+/**
+ *  클립보드 영어사전 HoenyDic::ChangedSettingsReceiver class.
+ *  클립보드 영어 사전 서비스. 안드로이드 시스템의 백그라운드에서 클립보드 이벤트를 받고 단어 뜻을 단어 카드 토스트(WordCardToast) 를 통하여 보여준다.
+ *  Copyright (C) 2015 ice3x2@gmail.com [https://github.com/ice3x2/HoneyDic]
+ *  </br></br>
+ *
+ *  This program is free software:
+ *  you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *  This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *  You should have received a copy of the GNU General Public License along with this program. If not, see < http://www.gnu.org/licenses/ >.
+ *
+ *  </br></br>
+ *  [한글. 번역 출처 : https://wiki.kldp.org/wiki.php/GNU/GPLV3Translation]</br>
+ *
+ *  이 프로그램은 자유 소프트웨어입니다:
+ *  당신은 이것을 자유 소프트웨어 재단이 발표한 GNU 일반 공중 사용허가서의 제3 버전이나 (선택에 따라) 그 이후 버전의 조항 아래 재배포하거나 수정할 수 있습니다.
+ *  이 프로그램은 유용하게 쓰이리라는 희망 아래 배포되지만, 특정한 목적에 대한 프로그램의 적합성이나 상업성 여부에 대한 보증을 포함한 어떠한 형태의 보증도 하지 않습니다.
+ *  세부 사항은 GNU 일반 공중 사용허가서를 참조하십시오.
+ *  당신은 이 프로그램과 함께 GNU 일반 공중 사용허가서를 받았을 것입니다. 만약 그렇지 않다면, < http://www.gnu.org/licenses/ > 를 보십시오.
+ *
+ */
 public class ClipboardDicService extends Service {
 
-    private WordCardToast mWordCardToast;
+
     private ClipboardManager mClipboardManager;
     private PhoneticPlayer mPhoneticPlayer;
     private DicSearcher mDicSearcher;
@@ -231,7 +252,6 @@ public class ClipboardDicService extends Service {
         Toast.makeText(getApplicationContext(), (hide == WordCardToast.HideDirection.Left)?"왼쪽":"오른쪽", Toast.LENGTH_SHORT).show();
         mPhoneticPlayer.stop();
         Log.i("testio", (Debug.getNativeHeapAllocatedSize() / 1024.0f / 1024.0f) + "Mb");
-        mWordCardToast = null;
     }
 
     private void setSetting(Settings setting) {
