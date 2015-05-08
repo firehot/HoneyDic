@@ -2,7 +2,7 @@
 <resources>
 
     <color name="HoneyDic_identity_background">@color/HoneyDic_identity_50</color>
-    <color name="HoneyDic_identity">@color/HoneyDic_identity_500</color>
+    <color name="HoneyDic_identity">@color/HoneyDic_identity_600</color>
     <color name="HoneyDic_identity_checked">@color/HoneyDic_identity_800</color>
     <color name="HoneyDic_identity_unchecked">@color/HoneyDic_gray_500</color>
     <color name="HoneyDic_setting_divide">@color/HoneyDic_gray_400</color>
