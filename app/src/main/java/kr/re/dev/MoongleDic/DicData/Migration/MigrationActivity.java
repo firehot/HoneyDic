@@ -25,7 +25,7 @@ import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 
 /**
- *  클립보드 영어사전 HoenyDic::MigrationActivity class.
+ *  클립보드 단어사전 HoenyDic::MigrationActivity class.
  *  Ld2 파일을 DB 로 마이그레이션하는 액티비티.
  *  Copyright (C) 2015 ice3x2@gmail.com [https://github.com/ice3x2/HoneyDic]
  *  </br></br>

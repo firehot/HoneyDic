@@ -31,7 +31,7 @@ import rx.schedulers.Schedulers;
 import rx.subjects.ReplaySubject;
 
 /**
- *  클립보드 영어사전 HoenyDic::DicSearcher class.
+ *  클립보드 단어사전 HoenyDic::DicSearcher class.
  *  사전 데이터베이스로부터 단어를 검색하고 뜻과 정보를 가져온다.
  *  Copyright (C) 2015 ice3x2@gmail.com [https://github.com/ice3x2/HoneyDic]
  *  </br></br>

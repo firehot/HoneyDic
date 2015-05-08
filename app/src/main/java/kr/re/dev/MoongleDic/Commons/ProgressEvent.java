@@ -4,7 +4,7 @@ import java.util.concurrent.Semaphore;
 
 
 /**
- *  클립보드 영어사전 HoenyDic::ProgressEvent class. Copyright (C) 2015 ice3x2@gmail.com [https://github.com/ice3x2/HoneyDic]
+ *  클립보드 단어사전 HoenyDic::ProgressEvent class. Copyright (C) 2015 ice3x2@gmail.com [https://github.com/ice3x2/HoneyDic]
  *  </br></br>
  *
  *  This program is free software:

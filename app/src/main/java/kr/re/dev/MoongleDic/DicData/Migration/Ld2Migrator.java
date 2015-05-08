@@ -28,7 +28,7 @@ import rx.subjects.PublishSubject;
 
 
 /**
- *  클립보드 영어사전 HoenyDic::Ld2Migrator class.
+ *  클립보드 단어사전 HoenyDic::Ld2Migrator class.
  *  Ld2 에서 추출한 txt 파일을 DB로 마이그레이션. 배포되는 애플리케이션에서는 이 기능이 숨겨져있다.
  *  Copyright (C) 2015 ice3x2@gmail.com [https://github.com/ice3x2/HoneyDic]
  *  </br></br>

@@ -22,7 +22,7 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
 /**
- *  클립보드 영어사전 HoenyDic::PhoneticPlayer class.
+ *  클립보드 단어사전 HoenyDic::PhoneticPlayer class.
  *  단어의 발음을 소리로 재생한다.
  *  Copyright (C) 2015 ice3x2@gmail.com [https://github.com/ice3x2/HoneyDic]
  *  </br></br>

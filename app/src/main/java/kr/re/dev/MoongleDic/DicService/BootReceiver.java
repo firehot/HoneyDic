@@ -7,8 +7,8 @@ import android.util.Log;
 
 
 /**
- *  클립보드 영어사전 HoenyDic::BootReceiver class.
- *  시스템 부트 완료 및, 커스텀 Action 의 브로드캐스트를 받아서 클립보드 영어사전 서비스 (ClipboardDicService) 를 시작한다.
+ *  클립보드 단어사전 HoenyDic::BootReceiver class.
+ *  시스템 부트 완료 및, 커스텀 Action 의 브로드캐스트를 받아서 클립보드 단어사전 서비스 (ClipboardDicService) 를 시작한다.
  *  Copyright (C) 2015 ice3x2@gmail.com [https://github.com/ice3x2/HoneyDic]
  *  </br></br>
  *

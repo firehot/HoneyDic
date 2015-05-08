@@ -35,7 +35,7 @@ import kr.re.dev.MoongleDic.UI.WordCardToast;
 import rx.Observable;
 
 /**
- *  클립보드 영어사전 HoenyDic::ChangedSettingsReceiver class.
+ *  클립보드 단어사전 HoenyDic::ChangedSettingsReceiver class.
  *  클립보드 영어 사전 서비스. 안드로이드 시스템의 백그라운드에서 클립보드 이벤트를 받고 단어 뜻을 단어 카드 토스트(WordCardToast) 를 통하여 보여준다.
  *  Copyright (C) 2015 ice3x2@gmail.com [https://github.com/ice3x2/HoneyDic]
  *  </br></br>

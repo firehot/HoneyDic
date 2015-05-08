@@ -3,7 +3,7 @@ package kr.re.dev.MoongleDic.DicData.Database;
 import io.realm.RealmObject;
 
 /**
- *  클립보드 영어사전 HoenyDic::WordColumns class. 단어와 뜻과 발음 기호와 품사를 포함한 내부 데이터를 갖고 있는 테이블. Realm 데이터 베이스로 적용된다.
+ *  클립보드 단어사전 HoenyDic::WordColumns class. 단어와 뜻과 발음 기호와 품사를 포함한 내부 데이터를 갖고 있는 테이블. Realm 데이터 베이스로 적용된다.
  *  Copyright (C) 2015 ice3x2@gmail.com [https://github.com/ice3x2/HoneyDic]
  *  </br></br>
  *

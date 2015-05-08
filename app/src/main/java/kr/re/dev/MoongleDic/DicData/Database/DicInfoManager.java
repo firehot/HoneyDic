@@ -18,7 +18,7 @@ import java.util.Map;
 
 
 /**
- *  클립보드 영어사전 HoenyDic::DicInfoManager class. 이 프로젝트에 기본적으로 포함된 사전과 데이터베이스 정보를 갖고 있다.
+ *  클립보드 단어사전 HoenyDic::DicInfoManager class. 이 프로젝트에 기본적으로 포함된 사전과 데이터베이스 정보를 갖고 있다.
  *  Copyright (C) 2015 ice3x2@gmail.com [https://github.com/ice3x2/HoneyDic]
  *  </br></br>
  *

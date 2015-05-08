@@ -13,7 +13,7 @@ import kr.re.dev.MoongleDic.Commons.ViewWrapper;
 import kr.re.dev.MoongleDic.R;
 
 /**
- *  클립보드 영어사전 HoenyDic::MeanItemWrapper class.
+ *  클립보드 단어사전 HoenyDic::MeanItemWrapper class.
  *  MeanItemWrapper UI 요소.
  *  Copyright (C) 2015 ice3x2@gmail.com [https://github.com/ice3x2/HoneyDic]
  *  </br></br>

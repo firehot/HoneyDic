@@ -23,7 +23,7 @@ import kr.re.dev.MoongleDic.DicService.Settings;
 import kr.re.dev.MoongleDic.UI.SettingFragment;
 
 /**
- *  클립보드 영어사전 HoenyDic::MainActivity class.
+ *  클립보드 단어사전 HoenyDic::MainActivity class.
  *  메인 액티비티.
  *  Copyright (C) 2015 ice3x2@gmail.com [https://github.com/ice3x2/HoneyDic]
  *  </br></br>

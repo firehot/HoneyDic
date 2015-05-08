@@ -2,7 +2,7 @@ package kr.re.dev.MoongleDic.DicData;
 
 
 /**
- *  클립보드 영어사전 HoenyDic::DescriptionCard class.
+ *  클립보드 단어사전 HoenyDic::DescriptionCard class.
  *  특정 단어의 뜻과 품사 정보를 갖고 있다. WordCard 클래스로로 생성된 인스턴스로부터 가져올 수 있다.
  *  Copyright (C) 2015 ice3x2@gmail.com [https://github.com/ice3x2/HoneyDic]
  *  </br></br>

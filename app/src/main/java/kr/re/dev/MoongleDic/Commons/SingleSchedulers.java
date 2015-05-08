@@ -7,7 +7,7 @@ import rx.Scheduler;
 import rx.schedulers.Schedulers;
 
 /**
- *  클립보드 영어사전 HoenyDic::SingleSchedulers class.
+ *  클립보드 단어사전 HoenyDic::SingleSchedulers class.
  *  HoenyDic 에서 사용하는 단 하나의 싱글 쓰레드 풀의 Scheduler (rx.Scheduler)
  *  Copyright (C) 2015 ice3x2@gmail.com [https://github.com/ice3x2/HoneyDic]
  *  </br></br>

@@ -11,7 +11,7 @@ import rx.Observable;
 import rx.subjects.PublishSubject;
 
 /**
- *  클립보드 영어사전 HoenyDic::ChangedSettingsReceiver class.
+ *  클립보드 단어사전 HoenyDic::ChangedSettingsReceiver class.
  *  설정(Settings) 변경 브로드캐스트를 받는다.
  *  Copyright (C) 2015 ice3x2@gmail.com [https://github.com/ice3x2/HoneyDic]
  *  </br></br>

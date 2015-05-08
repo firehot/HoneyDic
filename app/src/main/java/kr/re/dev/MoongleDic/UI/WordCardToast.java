@@ -37,8 +37,8 @@ import rx.subjects.PublishSubject;
 
 
 /**
- *  클립보드 영어사전 HoenyDic::SettingFragment class.
- *  클립보드 영어사전 서비스(ClipboardDicService) 로부터 출력되는 단어와 뜻을 보여주는 토스트.
+ *  클립보드 단어사전 HoenyDic::SettingFragment class.
+ *  클립보드 단어사전 서비스(ClipboardDicService) 로부터 출력되는 단어와 뜻을 보여주는 토스트.
  *  Copyright (C) 2015 ice3x2@gmail.com [https://github.com/ice3x2/HoneyDic]
  *  </br></br>
  *

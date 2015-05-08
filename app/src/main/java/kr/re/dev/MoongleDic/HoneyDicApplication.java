@@ -12,7 +12,7 @@ import java.util.HashMap;
 import kr.re.dev.MoongleDic.DicService.ClipboardDicService;
 
 /**
- *  클립보드 영어사전 HoenyDic::HoneyDicApplication class.
+ *  클립보드 단어사전 HoenyDic::HoneyDicApplication class.
  *  어플리케이션
  *  Copyright (C) 2015 ice3x2@gmail.com [https://github.com/ice3x2/HoneyDic]
  *  </br></br>

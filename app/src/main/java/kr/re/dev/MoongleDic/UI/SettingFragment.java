@@ -16,7 +16,7 @@ import kr.re.dev.MoongleDic.DicService.Settings;
 import kr.re.dev.MoongleDic.R;
 
 /**
- *  클립보드 영어사전 HoenyDic::SettingFragment class.
+ *  클립보드 단어사전 HoenyDic::SettingFragment class.
  *  세팅 화면을 출력하는 프래그먼트.
  *  Copyright (C) 2015 ice3x2@gmail.com [https://github.com/ice3x2/HoneyDic]
  *  </br></br>

@@ -11,7 +11,7 @@ import java.util.Map;
 
 
 /**
- *  클립보드 영어사전 HoenyDic::LocaleWordRefiner class.
+ *  클립보드 단어사전 HoenyDic::LocaleWordRefiner class.
  *  텍스트와 지역 정보를 입력받고, 지역에 해당하지 않는 알파벳을 포함하는 단어를 제거하여 반환해준다.
  *  Copyright (C) 2015 ice3x2@gmail.com [https://github.com/ice3x2/HoneyDic]
  *  </br></br>

@@ -7,7 +7,7 @@ import android.content.SharedPreferences;
 import kr.re.dev.MoongleDic.Constants;
 
 /**
- *  클립보드 영어사전 HoenyDic::Settings class.
+ *  클립보드 단어사전 HoenyDic::Settings class.
  *  설정 정보를 갖고 있다.
  *  Copyright (C) 2015 ice3x2@gmail.com [https://github.com/ice3x2/HoneyDic]
  *  </br></br>

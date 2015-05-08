@@ -20,7 +20,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import kr.re.dev.MoongleDic.DicData.Database.WordColumns;
 
 /**
- *  클립보드 영어사전 HoenyDic::WordCard class.
+ *  클립보드 단어사전 HoenyDic::WordCard class.
  *  단어와 그와 매치되는 뜻을 포함한 여러 정보를 갖고 있다.
  *  Copyright (C) 2015 ice3x2@gmail.com [https://github.com/ice3x2/HoneyDic]
  *  </br></br>
